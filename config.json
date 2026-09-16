@@ -1,0 +1,10 @@
+{
+  "channel_niche": "curious science, technology, history and nature facts",
+  "language": "en-US",
+  "voice": "en-US-AriaNeural",
+  "max_days": 30,
+  "max_videos": 60,
+  "privacy_status": "private",
+  "duration_target_seconds": 45
+}
+
