@@ -19,14 +19,22 @@ RELIGIOUS = json.loads((ROOT / "religious_content.json").read_text(encoding="utf
 
 
 def choose_content(state: dict) -> tuple[str, dict, str]:
-    slot = state.get("runs", 0) % 4
+    runs = state.get("runs", 0)
+
+    # One-time immediate human-recitation Quran test after the first two uploads.
+    # If the test fails, state remains at 2 and the next retry stays on Quran.
+    if runs == 2:
+        item = dict(RELIGIOUS["quran"][0])
+        return item["topic"], item, "ar"
+
+    slot = runs % 4
     if slot == 1:
         items = RELIGIOUS["quran"]
-        item = dict(items[(state.get("runs", 0) // 4) % len(items)])
+        item = dict(items[(runs // 4) % len(items)])
         return item["topic"], item, "ar"
     if slot == 3:
         items = RELIGIOUS["hadith"]
-        item = dict(items[(state.get("runs", 0) // 4) % len(items)])
+        item = dict(items[(runs // 4) % len(items)])
         return item["topic"], item, "ar"
 
     topic = pipeline.pick_topic(state)
