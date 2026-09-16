@@ -3,7 +3,7 @@ name: Create and upload YouTube Short
 
 on:
   schedule:
-    - cron: "17 8,18 * * *"
+    - cron: "17 7,11,15,19 * * *"
   workflow_dispatch:
   push:
     branches: [main]
