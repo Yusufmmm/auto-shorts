@@ -5,6 +5,7 @@ import json
 import re
 import subprocess
 from datetime import datetime, timezone
+from pathlib import Path
 
 import requests
 
@@ -18,14 +19,22 @@ STATE = pipeline.STATE
 CONFIG = pipeline.CONFIG
 RELIGIOUS = json.loads((ROOT / "religious_content.json").read_text(encoding="utf-8"))
 
+ALLOWED_VISUAL_LICENSES = {
+    "CC0",
+    "Public domain",
+    "CC BY 4.0",
+    "CC BY-SA 4.0",
+    "CC BY 3.0",
+    "CC BY-SA 3.0",
+}
+
 
 def choose_content(state: dict) -> tuple[str, dict, str]:
     runs = state.get("runs", 0)
 
-    # One-time immediate human-recitation Quran test after the first two uploads.
-    # If the test fails, state remains at 2 and the next retry stays on Quran.
-    if runs == 2:
-        item = dict(RELIGIOUS["quran"][0])
+    # One immediate nature-video Quran test after the first human-recitation test.
+    if runs == 3:
+        item = dict(RELIGIOUS["quran"][1])
         return item["topic"], item, "ar"
 
     slot = runs % 4
@@ -42,7 +51,7 @@ def choose_content(state: dict) -> tuple[str, dict, str]:
     return topic, pipeline.generate_package(topic), "en"
 
 
-def download_commons_audio(file_title: str, destination, required_license: str = "CC0") -> dict:
+def download_commons_audio(file_title: str, destination: Path, required_license: str = "CC0") -> dict:
     api = "https://commons.wikimedia.org/w/api.php"
     params = {
         "action": "query",
@@ -88,13 +97,186 @@ def download_commons_audio(file_title: str, destination, required_license: str =
     }
 
 
-def download_visuals(package: dict) -> tuple[list, list[dict]]:
-    """Download up to three licensed Commons images for a more dynamic Short."""
-    backgrounds = []
-    licenses = []
-    queries = list(dict.fromkeys(package.get("media_queries", [])))[:3]
-    if not queries:
-        queries = ["peaceful nature"]
+def _clean_artist(meta: dict) -> str:
+    return re.sub("<[^>]+>", "", meta.get("Artist", {}).get("value", "Unknown"))
+
+
+def download_commons_video(query: str, destination: Path) -> dict:
+    """Find and download one reusable Commons nature video, refusing unclear licenses."""
+    api = "https://commons.wikimedia.org/w/api.php"
+    params = {
+        "action": "query",
+        "generator": "search",
+        "gsrsearch": f"filetype:video {query}",
+        "gsrnamespace": 6,
+        "gsrlimit": 20,
+        "prop": "imageinfo",
+        "iiprop": "url|mime|size|extmetadata",
+        "format": "json",
+        "formatversion": 2,
+    }
+    response = requests.get(api, params=params, headers=pipeline.COMMONS_HEADERS, timeout=30)
+    response.raise_for_status()
+
+    for page in response.json().get("query", {}).get("pages", []):
+        infos = page.get("imageinfo") or []
+        if not infos:
+            continue
+        info = infos[0]
+        mime = info.get("mime", "")
+        if not mime.startswith("video/"):
+            continue
+        meta = info.get("extmetadata", {})
+        license_name = meta.get("LicenseShortName", {}).get("value", "")
+        if license_name not in ALLOWED_VISUAL_LICENSES:
+            continue
+        size = int(info.get("size") or 0)
+        if size and size > 90 * 1024 * 1024:
+            continue
+        url = info.get("url")
+        if not url:
+            continue
+
+        try:
+            video = requests.get(url, headers=pipeline.COMMONS_HEADERS, timeout=90)
+            video.raise_for_status()
+            if len(video.content) > 95 * 1024 * 1024:
+                continue
+            destination.write_bytes(video.content)
+            # Verify ffmpeg can read it before accepting it.
+            pipeline.probe_duration(destination)
+        except Exception:
+            destination.unlink(missing_ok=True)
+            continue
+
+        return {
+            "title": page.get("title", "Wikimedia Commons video"),
+            "source": info.get("descriptionurl"),
+            "license": license_name,
+            "artist": _clean_artist(meta),
+            "mime": mime,
+        }
+
+    raise RuntimeError(f"No suitably licensed Commons video found for {query!r}")
+
+
+def download_nature_videos(package: dict) -> tuple[list[Path], list[dict]]:
+    """Download 2-4 distinct licensed motion clips suitable for a Short."""
+    queries = list(dict.fromkeys(package.get("media_queries", [])))
+    extras = ["mountain landscape", "waterfall nature", "river forest", "clouds timelapse"]
+    queries.extend(q for q in extras if q not in queries)
+
+    clips: list[Path] = []
+    licenses: list[dict] = []
+    seen_titles: set[str] = set()
+
+    for index, query in enumerate(queries):
+        if len(clips) >= 4:
+            break
+        raw = BUILD / f"nature-video-{index}"
+        try:
+            info = download_commons_video(query, raw)
+            if info["title"] in seen_titles:
+                raw.unlink(missing_ok=True)
+                continue
+            seen_titles.add(info["title"])
+            clips.append(raw)
+            licenses.append(info)
+            print(f"Nature clip: {info['title']} ({info['license']})")
+        except Exception as exc:
+            print(f"Skipping video query {query!r}: {exc}")
+
+    if not clips:
+        raise RuntimeError("No licensed nature video clips could be downloaded")
+    return clips, licenses
+
+
+def _normalize_clip(source: Path, destination: Path, seconds: float = 5.0) -> None:
+    """Turn an arbitrary Commons video into a silent 1080x1920 H.264 segment."""
+    vf = (
+        "scale=1080:1920:force_original_aspect_ratio=increase,"
+        "crop=1080:1920,fps=30,"
+        "eq=saturation=1.05:contrast=1.02"
+    )
+    subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-i", str(source),
+            "-t", f"{seconds:.2f}",
+            "-vf", vf,
+            "-an",
+            "-c:v", "libx264",
+            "-preset", "veryfast",
+            "-crf", "22",
+            "-pix_fmt", "yuv420p",
+            str(destination),
+        ],
+        check=True,
+    )
+
+
+def render_video_montage(clips: list[Path], voice: Path, subtitles: Path, output: Path, duration: float) -> None:
+    """Cut together nature footage, loop the montage as needed, then add recitation and captions."""
+    normalized: list[Path] = []
+    for i, clip in enumerate(clips):
+        target = BUILD / f"normalized-{i}.mp4"
+        _normalize_clip(clip, target, 5.0)
+        normalized.append(target)
+
+    concat_list = BUILD / "video-concat.txt"
+    # Repeat the set enough times to cover the audio duration.
+    repeats = max(1, int(duration // (5.0 * len(normalized))) + 2)
+    lines = []
+    for _ in range(repeats):
+        for clip in normalized:
+            escaped = str(clip.resolve()).replace("'", "'\\''")
+            lines.append(f"file '{escaped}'")
+    concat_list.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    montage = BUILD / "nature-montage.mp4"
+    subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-f", "concat", "-safe", "0", "-i", str(concat_list),
+            "-t", f"{duration:.3f}",
+            "-c", "copy",
+            str(montage),
+        ],
+        check=True,
+    )
+
+    sub_path = str(subtitles).replace("'", "'\\''")
+    vf = (
+        "subtitles='" + sub_path +
+        "':force_style='FontName=DejaVu Sans,FontSize=18,PrimaryColour=&H00FFFFFF,"
+        "OutlineColour=&H00000000,BorderStyle=1,Outline=3,Alignment=2,MarginV=250'"
+    )
+    subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-i", str(montage),
+            "-i", str(voice),
+            "-vf", vf,
+            "-map", "0:v:0",
+            "-map", "1:a:0",
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-crf", "21",
+            "-c:a", "aac",
+            "-b:a", "160k",
+            "-pix_fmt", "yuv420p",
+            "-shortest",
+            str(output),
+        ],
+        check=True,
+    )
+
+
+def download_visuals(package: dict) -> tuple[list[Path], list[dict]]:
+    """Fallback: download up to three licensed Commons still images."""
+    backgrounds: list[Path] = []
+    licenses: list[dict] = []
+    queries = list(dict.fromkeys(package.get("media_queries", [])))[:3] or ["peaceful nature"]
 
     for index, query in enumerate(queries):
         raw = BUILD / f"source-image-{index}"
@@ -112,8 +294,8 @@ def download_visuals(package: dict) -> tuple[list, list[dict]]:
     return backgrounds, licenses
 
 
-def render_dynamic(backgrounds: list, voice, subtitles, output, duration: float) -> None:
-    """Render 1-3 photos as moving vertical scenes using slow pan/zoom."""
+def render_dynamic(backgrounds: list[Path], voice: Path, subtitles: Path, output: Path, duration: float) -> None:
+    """Fallback renderer: moving vertical scenes from licensed photos."""
     count = len(backgrounds)
     segment = max(duration / count, 1.0)
 
@@ -124,11 +306,11 @@ def render_dynamic(backgrounds: list, voice, subtitles, output, duration: float)
 
     filters = []
     for i in range(count):
-        # Alternate motion slightly so consecutive shots do not feel identical.
-        if i % 2 == 0:
-            motion = "z='min(zoom+0.0009,1.10)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-        else:
-            motion = "z='min(zoom+0.0007,1.08)':x='max(0,iw-iw/zoom)':y='ih/2-(ih/zoom/2)'"
+        motion = (
+            "z='min(zoom+0.0009,1.10)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+            if i % 2 == 0
+            else "z='min(zoom+0.0007,1.08)':x='max(0,iw-iw/zoom)':y='ih/2-(ih/zoom/2)'"
+        )
         filters.append(
             f"[{i}:v]scale=1200:2134:force_original_aspect_ratio=increase,"
             f"crop=1080:1920,zoompan={motion}:d=1:s=1080x1920:fps=30,"
@@ -139,8 +321,7 @@ def render_dynamic(backgrounds: list, voice, subtitles, output, duration: float)
     filters.append(f"{joined}concat=n={count}:v=1:a=0[base]")
     sub_path = str(subtitles).replace("'", "'\\''")
     filters.append(
-        "[base]subtitles='"
-        + sub_path
+        "[base]subtitles='" + sub_path
         + "':force_style='FontName=DejaVu Sans,FontSize=18,PrimaryColour=&H00FFFFFF,"
         "OutlineColour=&H00000000,BorderStyle=1,Outline=3,Alignment=2,MarginV=250'[vout]"
     )
@@ -171,7 +352,6 @@ def main() -> None:
         return
 
     topic, package, language = choose_content(state)
-    backgrounds, media_info = download_visuals(package)
 
     tts_voice = BUILD / "voice.mp3"
     human_voice = BUILD / "human-recitation"
@@ -208,7 +388,23 @@ def main() -> None:
 
     duration = pipeline.probe_duration(voice)
     pipeline.create_subtitles(package["script"], duration, subtitles)
-    render_dynamic(backgrounds, voice, subtitles, video, duration)
+
+    media_info: list[dict]
+    visual_mode = "licensed_nature_video"
+    try:
+        nature_clips, media_info = download_nature_videos(package)
+        package["description"] += "\n\nمشاهد الفيديو المرخصة:"
+        for item in media_info:
+            package["description"] += (
+                f"\n- {item['artist']} | {item['license']} | {item['source']}"
+            )
+        render_video_montage(nature_clips, voice, subtitles, video, duration)
+    except Exception as exc:
+        print(f"Nature-video montage unavailable; falling back to moving photos: {exc}")
+        visual_mode = "moving_licensed_photos"
+        backgrounds, media_info = download_visuals(package)
+        render_dynamic(backgrounds, voice, subtitles, video, duration)
+
     video_id = pipeline.upload(video, package)
 
     record = {
@@ -217,6 +413,7 @@ def main() -> None:
         "video_id": video_id,
         "title": package["title"],
         "language": language,
+        "visual_mode": visual_mode,
         "media": media_info,
     }
     if audio_info:
