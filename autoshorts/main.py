@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import textwrap
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -22,6 +23,11 @@ BUILD = ROOT / "build"
 LOGS = ROOT / "logs"
 STATE = ROOT / "state.json"
 CONFIG = json.loads((ROOT / "config.json").read_text())
+
+COMMONS_HEADERS = {
+    "User-Agent": "AutoShorts/1.0 (https://github.com/Yusufmmm/auto-shorts; automated educational video pipeline)",
+    "Accept": "application/json",
+}
 
 
 def load_state() -> dict:
@@ -65,27 +71,71 @@ an array of 3 simple visual search phrases. No markdown."""
     return data
 
 
+def _commons_json(session: requests.Session, api: str, params: dict) -> dict:
+    last_error = "unknown error"
+    for attempt in range(1, 4):
+        response = session.get(api, params=params, timeout=30)
+        if response.ok:
+            try:
+                return response.json()
+            except ValueError:
+                last_error = f"non-JSON response ({response.headers.get('content-type', 'unknown')})"
+        else:
+            last_error = f"HTTP {response.status_code}: {response.text[:180]}"
+        if attempt < 3:
+            time.sleep(2 * attempt)
+    raise RuntimeError(f"Wikimedia Commons API failed: {last_error}")
+
+
 def download_commons_image(query: str, destination: Path) -> dict:
     api = "https://commons.wikimedia.org/w/api.php"
-    params = {"action": "query", "generator": "search", "gsrsearch": f"filetype:bitmap {query}", "gsrnamespace": 6, "gsrlimit": 10, "prop": "imageinfo", "iiprop": "url|extmetadata", "iiurlwidth": 1200, "format": "json", "origin": "*"}
-    data = requests.get(api, params=params, timeout=30).json()
+    session = requests.Session()
+    session.headers.update(COMMONS_HEADERS)
     allowed = {"CC0", "Public domain", "CC BY 4.0", "CC BY-SA 4.0", "CC BY 3.0", "CC BY-SA 3.0"}
-    for page in data.get("query", {}).get("pages", {}).values():
-        info = page.get("imageinfo", [{}])[0]
-        meta = info.get("extmetadata", {})
-        license_name = meta.get("LicenseShortName", {}).get("value", "")
-        if license_name not in allowed:
-            continue
-        image_url = info.get("thumburl") or info.get("url")
-        blob = requests.get(image_url, timeout=45).content
-        destination.write_bytes(blob)
-        try:
-            with Image.open(destination) as im:
-                im.verify()
-        except Exception:
-            destination.unlink(missing_ok=True)
-            continue
-        return {"title": page["title"], "source": info.get("descriptionurl"), "license": license_name, "artist": re.sub("<[^>]+>", "", meta.get("Artist", {}).get("value", "Unknown"))}
+    queries = [query, " ".join(query.split()[:4]), "nature science"]
+
+    for search_query in dict.fromkeys(q for q in queries if q.strip()):
+        params = {
+            "action": "query",
+            "generator": "search",
+            "gsrsearch": f"filetype:bitmap {search_query}",
+            "gsrnamespace": 6,
+            "gsrlimit": 15,
+            "prop": "imageinfo",
+            "iiprop": "url|extmetadata",
+            "iiurlwidth": 1200,
+            "format": "json",
+            "formatversion": 2,
+        }
+        data = _commons_json(session, api, params)
+        for page in data.get("query", {}).get("pages", []):
+            info_list = page.get("imageinfo") or []
+            if not info_list:
+                continue
+            info = info_list[0]
+            meta = info.get("extmetadata", {})
+            license_name = meta.get("LicenseShortName", {}).get("value", "")
+            if license_name not in allowed:
+                continue
+            image_url = info.get("thumburl") or info.get("url")
+            if not image_url:
+                continue
+            image_response = session.get(image_url, timeout=45)
+            if not image_response.ok or not image_response.content:
+                continue
+            destination.write_bytes(image_response.content)
+            try:
+                with Image.open(destination) as im:
+                    im.verify()
+            except Exception:
+                destination.unlink(missing_ok=True)
+                continue
+            return {
+                "title": page.get("title", "Wikimedia Commons image"),
+                "source": info.get("descriptionurl"),
+                "license": license_name,
+                "artist": re.sub("<[^>]+>", "", meta.get("Artist", {}).get("value", "Unknown")),
+            }
     raise RuntimeError(f"No suitably licensed Wikimedia image found for {query!r}")
 
 
@@ -163,4 +213,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
