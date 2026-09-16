@@ -2,8 +2,11 @@
   "channel_niche": "curious science, technology, history and nature facts",
   "language": "en-US",
   "voice": "en-US-AriaNeural",
+  "arabic_voice": "ar-SA-HamedNeural",
+  "videos_per_day": 4,
+  "religious_videos_per_day": 2,
   "max_days": 30,
-  "max_videos": 60,
+  "max_videos": 120,
   "privacy_status": "public",
   "duration_target_seconds": 45
 }
