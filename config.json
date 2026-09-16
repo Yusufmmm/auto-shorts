@@ -4,7 +4,6 @@
   "voice": "en-US-AriaNeural",
   "max_days": 30,
   "max_videos": 60,
-  "privacy_status": "private",
+  "privacy_status": "public",
   "duration_target_seconds": 45
 }
-
