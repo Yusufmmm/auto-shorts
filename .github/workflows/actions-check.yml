@@ -1,0 +1,13 @@
+name: Actions setup check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm GitHub Actions
+        run: echo "GitHub Actions is working"
