@@ -1,3 +1,4 @@
+# Auto Shorts publishing workflow
 name: Create and upload YouTube Short
 
 on:
@@ -40,4 +41,3 @@ jobs:
           git add state.json logs/
           git diff --cached --quiet || git commit -m "chore: record automated short"
           git push
-
