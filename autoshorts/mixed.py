@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import subprocess
 from datetime import datetime, timezone
 
 import requests
@@ -87,6 +88,79 @@ def download_commons_audio(file_title: str, destination, required_license: str =
     }
 
 
+def download_visuals(package: dict) -> tuple[list, list[dict]]:
+    """Download up to three licensed Commons images for a more dynamic Short."""
+    backgrounds = []
+    licenses = []
+    queries = list(dict.fromkeys(package.get("media_queries", [])))[:3]
+    if not queries:
+        queries = ["peaceful nature"]
+
+    for index, query in enumerate(queries):
+        raw = BUILD / f"source-image-{index}"
+        background = BUILD / f"background-{index}.jpg"
+        try:
+            info = pipeline.download_commons_image(query, raw)
+            pipeline.make_background(raw, background)
+            backgrounds.append(background)
+            licenses.append(info)
+        except Exception as exc:
+            print(f"Skipping visual {index + 1} ({query!r}): {exc}")
+
+    if not backgrounds:
+        raise RuntimeError("No licensed visuals could be downloaded")
+    return backgrounds, licenses
+
+
+def render_dynamic(backgrounds: list, voice, subtitles, output, duration: float) -> None:
+    """Render 1-3 photos as moving vertical scenes using slow pan/zoom."""
+    count = len(backgrounds)
+    segment = max(duration / count, 1.0)
+
+    cmd = ["ffmpeg", "-y"]
+    for image in backgrounds:
+        cmd += ["-loop", "1", "-framerate", "30", "-t", f"{segment:.3f}", "-i", str(image)]
+    cmd += ["-i", str(voice)]
+
+    filters = []
+    for i in range(count):
+        # Alternate motion slightly so consecutive shots do not feel identical.
+        if i % 2 == 0:
+            motion = "z='min(zoom+0.0009,1.10)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+        else:
+            motion = "z='min(zoom+0.0007,1.08)':x='max(0,iw-iw/zoom)':y='ih/2-(ih/zoom/2)'"
+        filters.append(
+            f"[{i}:v]scale=1200:2134:force_original_aspect_ratio=increase,"
+            f"crop=1080:1920,zoompan={motion}:d=1:s=1080x1920:fps=30,"
+            f"trim=duration={segment:.3f},setpts=PTS-STARTPTS[v{i}]"
+        )
+
+    joined = "".join(f"[v{i}]" for i in range(count))
+    filters.append(f"{joined}concat=n={count}:v=1:a=0[base]")
+    sub_path = str(subtitles).replace("'", "'\\''")
+    filters.append(
+        "[base]subtitles='"
+        + sub_path
+        + "':force_style='FontName=DejaVu Sans,FontSize=18,PrimaryColour=&H00FFFFFF,"
+        "OutlineColour=&H00000000,BorderStyle=1,Outline=3,Alignment=2,MarginV=250'[vout]"
+    )
+
+    cmd += [
+        "-filter_complex", ";".join(filters),
+        "-map", "[vout]",
+        "-map", f"{count}:a:0",
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "21",
+        "-c:a", "aac",
+        "-b:a", "160k",
+        "-pix_fmt", "yuv420p",
+        "-shortest",
+        str(output),
+    ]
+    subprocess.run(cmd, check=True)
+
+
 def main() -> None:
     BUILD.mkdir(exist_ok=True)
     LOGS.mkdir(exist_ok=True)
@@ -97,16 +171,12 @@ def main() -> None:
         return
 
     topic, package, language = choose_content(state)
-    raw_image = BUILD / "source-image"
-    license_info = pipeline.download_commons_image(package["media_queries"][0], raw_image)
+    backgrounds, media_info = download_visuals(package)
 
-    background = BUILD / "background.jpg"
     tts_voice = BUILD / "voice.mp3"
     human_voice = BUILD / "human-recitation"
     subtitles = BUILD / "captions.srt"
     video = BUILD / "short.mp4"
-
-    pipeline.make_background(raw_image, background)
 
     audio_info = None
     human_audio_file = package.get("human_audio_file")
@@ -138,7 +208,7 @@ def main() -> None:
 
     duration = pipeline.probe_duration(voice)
     pipeline.create_subtitles(package["script"], duration, subtitles)
-    pipeline.render(background, voice, subtitles, video)
+    render_dynamic(backgrounds, voice, subtitles, video, duration)
     video_id = pipeline.upload(video, package)
 
     record = {
@@ -147,7 +217,7 @@ def main() -> None:
         "video_id": video_id,
         "title": package["title"],
         "language": language,
-        "media": license_info,
+        "media": media_info,
     }
     if audio_info:
         record["audio"] = audio_info
