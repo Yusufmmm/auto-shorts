@@ -1,0 +1,36 @@
+{
+  "created_at": "2026-09-17T20:06:40.086585+00:00",
+  "topic": "Good word charity",
+  "video_id": "dcvVSNByvGk",
+  "title": "الكلمة الطيبة صدقة | حديث صحيح",
+  "language": "ar",
+  "content_type": "hadith",
+  "visual_mode": "licensed_video_montage",
+  "media": [
+    {
+      "title": "File:South Fork Clackamas Wild and Scenic River (27956592063).webm",
+      "source": "https://commons.wikimedia.org/wiki/File:South_Fork_Clackamas_Wild_and_Scenic_River_(27956592063).webm",
+      "license": "Public domain",
+      "artist": "BLM Oregon &amp; Washington",
+      "mime": "video/webm",
+      "duration": 13.28
+    },
+    {
+      "title": "File:Molalla River in autumn (44506764934).webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Molalla_River_in_autumn_(44506764934).webm",
+      "license": "Public domain",
+      "artist": "BLM Oregon &amp; Washington",
+      "mime": "video/webm",
+      "duration": 13.747
+    },
+    {
+      "title": "File:The blue sky kisses the green ocean, as I stand on the shore of little brown sand, watching evening melt into waves.webm",
+      "source": "https://commons.wikimedia.org/wiki/File:The_blue_sky_kisses_the_green_ocean,_as_I_stand_on_the_shore_of_little_brown_sand,_watching_evening_melt_into_waves.webm",
+      "license": "CC BY 4.0",
+      "artist": "Mathanprasath K",
+      "mime": "video/webm",
+      "duration": 14.585
+    }
+  ],
+  "script": "قال رسول الله صلى الله عليه وسلم: وَالْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ. رواه البخاري ومسلم. كلمة بسيطة قد تغيّر يوم إنسان كامل: تشجيع أو دعاء أو شكر أو سلام صادق. لا تستهِن بالكلمة الطيبة، فهي عبادة وأثرها يبقى في القلوب."
+}
