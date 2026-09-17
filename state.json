@@ -198,7 +198,50 @@
         "artist": "Ibrahimmusa4",
         "mime": "application/ogg"
       }
+    },
+    {
+      "created_at": "2026-09-17T16:07:49.887218+00:00",
+      "topic": "asteroid",
+      "video_id": "QoD7jA6JJVY",
+      "title": "What Lurks in the Asteroid Belt?",
+      "language": "en",
+      "content_type": "fact",
+      "visual_mode": "licensed_video_montage",
+      "media": [
+        {
+          "title": "File:South Fork Clackamas Wild and Scenic River (27954935884).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:South_Fork_Clackamas_Wild_and_Scenic_River_(27954935884).webm",
+          "license": "Public domain",
+          "artist": "BLM Oregon &amp; Washington",
+          "mime": "video/webm",
+          "duration": 18.811
+        },
+        {
+          "title": "File:Molalla River in autumn (43416061480).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:Molalla_River_in_autumn_(43416061480).webm",
+          "license": "Public domain",
+          "artist": "BLM Oregon &amp; Washington",
+          "mime": "video/webm",
+          "duration": 17.951
+        },
+        {
+          "title": "File:Waves crashing on rocks off Beach 4, Kalaloch Beach, Washington 01.webm",
+          "source": "https://commons.wikimedia.org/wiki/File:Waves_crashing_on_rocks_off_Beach_4,_Kalaloch_Beach,_Washington_01.webm",
+          "license": "CC BY-SA 4.0",
+          "artist": "Joe Mabel on Vimeo as Joe Mabel",
+          "mime": "video/webm",
+          "duration": 46.557
+        },
+        {
+          "title": "File:Cosumnes River Preserve (28137269993).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:Cosumnes_River_Preserve_(28137269993).webm",
+          "license": "Public domain",
+          "artist": "blmcalifornia",
+          "mime": "video/webm",
+          "duration": 19.653
+        }
+      ]
     }
   ],
-  "runs": 6
+  "runs": 7
 }
