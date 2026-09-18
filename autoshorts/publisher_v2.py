@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import os
 import re
+import subprocess
 from collections import Counter
 from pathlib import Path
 
@@ -13,7 +14,6 @@ from googleapiclient.discovery import build
 
 from . import publisher as base
 
-# Keep the channel inside its intended science / nature / technology / history niche.
 TREND_KEYWORDS = {
     "science", "space", "technology", "robot", "robotics", "ocean", "nature",
     "animal", "wildlife", "discovery", "archaeology", "history", "planet", "nasa",
@@ -30,6 +30,12 @@ QUERY_STOPWORDS = {
     "video", "videos", "footage", "clip", "clips", "nature", "science", "technology",
     "close", "up", "beautiful", "cinematic", "short", "vertical", "stock", "drone",
 }
+
+CURRENT_CONTEXT: dict = {}
+ORIGINAL_CHOOSE_CONTENT = base.choose_content
+ORIGINAL_CREATE_SUBTITLES = base.pipeline.create_subtitles
+ORIGINAL_RENDER_MONTAGE = base.render_montage
+ORIGINAL_RENDER_PHOTO_FALLBACK = base.render_photo_fallback
 
 
 def _tokens(text: str) -> set[str]:
@@ -119,7 +125,6 @@ def download_commons_video(query: str, destination: Path, used_titles: set[str],
                 continue
             destination.write_bytes(response.content)
             duration = base.pipeline.probe_duration(destination)
-            # Longer source clips let us keep each scene on screen long enough to feel intentional.
             if duration < 12.0:
                 destination.unlink(missing_ok=True)
                 continue
@@ -140,7 +145,6 @@ def download_commons_video(query: str, destination: Path, used_titles: set[str],
 
 
 def download_video_set(package: dict, state: dict, duration: float, content_type: str):
-    """Use 3-5 unique clips, around 9-14 seconds each, and never recycle older channel clips."""
     target_count = max(3, min(5, math.ceil(duration / 11.0)))
     used_titles = base._used_media_titles(state)
     clips: list[Path] = []
@@ -164,10 +168,8 @@ def download_video_set(package: dict, state: dict, duration: float, content_type
     if content_type in {"quran", "hadith"}:
         try_queries(list(base.NATURE_QUERIES), True)
     else:
-        # First try visuals that actually match the generated topic.
         topic_queries = list(dict.fromkeys(package.get("media_queries", [])))
         try_queries(topic_queries, False)
-        # If Commons does not have enough relevant footage, fill the rest with clean nature scenes.
         if len(clips) < target_count:
             try_queries(list(base.NATURE_QUERIES), True)
 
@@ -177,7 +179,6 @@ def download_video_set(package: dict, state: dict, duration: float, content_type
 
 
 def hide_bad_test_video() -> None:
-    """Make the one off-niche test upload private once the corrected publisher starts."""
     video_id = "rAcvnNqqKpY"
     try:
         credentials = Credentials(
@@ -202,10 +203,193 @@ def hide_bad_test_video() -> None:
         print(f"Could not hide unsuitable test video: {exc}")
 
 
-# Patch the proven publisher with stricter selection rules.
+def choose_content(state: dict):
+    trigger_path = base.ROOT / ".github" / "auto-shorts-trigger"
+    trigger_text = trigger_path.read_text(encoding="utf-8") if trigger_path.exists() else ""
+
+    if "QURAN_STYLE_TEST" in trigger_text:
+        items = base.RELIGIOUS["quran"]
+        item = dict(items[1 % len(items)])
+        result = (item["topic"], item, "ar", "quran")
+    else:
+        result = ORIGINAL_CHOOSE_CONTENT(state)
+
+    topic, package, language, content_type = result
+    CURRENT_CONTEXT.clear()
+    CURRENT_CONTEXT.update({
+        "topic": topic,
+        "package": package,
+        "language": language,
+        "content_type": content_type,
+    })
+    return result
+
+
+def _ass_time(seconds: float) -> str:
+    cs = max(0, int(round(seconds * 100)))
+    h = cs // 360000
+    m = (cs // 6000) % 60
+    s = (cs // 100) % 60
+    c = cs % 100
+    return f"{h}:{m:02}:{s:02}.{c:02}"
+
+
+def _arabic_number(number: int) -> str:
+    digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
+    return str(number).translate(digits)
+
+
+def _escape_ass(text: str) -> str:
+    return text.replace("\\", r"\\").replace("{", r"\{").replace("}", r"\}").replace("\n", r"\N")
+
+
+def create_quran_ass(package: dict, duration: float, destination: Path) -> None:
+    verses = list(package.get("verses") or [])
+    opening = (package.get("opening") or "").strip()
+    surah_name = package.get("surah_name") or package.get("title", "القرآن الكريم").split("|")[0].strip()
+
+    events: list[tuple[str, int | None]] = []
+    if opening:
+        events.append((opening, None))
+    for verse in verses:
+        events.append((str(verse["text"]).strip(), int(verse["number"])))
+
+    if not events:
+        ORIGINAL_CREATE_SUBTITLES(package["script"], duration, destination)
+        return
+
+    weights = [max(3, len(re.findall(r"\S+", text))) for text, _ in events]
+    total_weight = sum(weights)
+    cursor = 0.0
+    event_lines = []
+
+    for (text, number), weight in zip(events, weights):
+        span = duration * weight / total_weight
+        start = cursor
+        end = min(duration, cursor + span)
+        cursor = end
+
+        if number is None:
+            display = text
+            style = "Opening"
+        else:
+            display = f"{text}  ﴿{_arabic_number(number)}﴾"
+            style = "Verse"
+        event_lines.append(
+            f"Dialogue: 0,{_ass_time(start)},{_ass_time(end)},{style},,0,0,0,,"
+            f"{{\\fad(280,280)}}{_escape_ass(display)}"
+        )
+
+    title_line = (
+        f"Dialogue: 0,{_ass_time(0)},{_ass_time(duration)},SurahTitle,,0,0,0,,"
+        f"{{\\fad(450,450)}}{_escape_ass(surah_name)}"
+    )
+
+    ass = """[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
+Style: SurahTitle,Noto Naskh Arabic,48,&H0000D7FF,&H0000D7FF,&H00111111,&H55000000,-1,0,0,0,100,100,0,0,1,2,1,8,80,80,105,1
+Style: Opening,Noto Naskh Arabic,68,&H00FFFFFF,&H00FFFFFF,&H00101010,&H72000000,-1,0,0,0,100,100,0,0,3,2,0,5,95,95,0,1
+Style: Verse,Noto Naskh Arabic,72,&H00FFFFFF,&H0000D7FF,&H00101010,&H72000000,-1,0,0,0,100,100,0,0,3,2,0,5,85,85,0,1
+
+[Events]
+Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+"""
+    ass += title_line + "\n" + "\n".join(event_lines) + "\n"
+    destination.write_text(ass, encoding="utf-8")
+
+
+def create_subtitles(script: str, duration: float, output: Path) -> None:
+    if CURRENT_CONTEXT.get("content_type") == "quran":
+        package = CURRENT_CONTEXT.get("package") or {}
+        quran_ass = base.BUILD / "quran-captions.ass"
+        create_quran_ass(package, duration, quran_ass)
+        output.write_text("", encoding="utf-8")
+        return
+    ORIGINAL_CREATE_SUBTITLES(script, duration, output)
+
+
+def _quran_ass_filter() -> str:
+    quran_ass = base.BUILD / "quran-captions.ass"
+    escaped = str(quran_ass).replace("'", "'\\''")
+    return f"subtitles='{escaped}'"
+
+
+def render_montage(clips: list[Path], voice: Path, subtitles: Path, output: Path, duration: float) -> None:
+    if CURRENT_CONTEXT.get("content_type") != "quran":
+        return ORIGINAL_RENDER_MONTAGE(clips, voice, subtitles, output, duration)
+
+    scene_length = duration / len(clips)
+    normalized: list[Path] = []
+    for i, clip in enumerate(clips):
+        target = base.BUILD / f"scene-{i}.mp4"
+        base.normalize_clip(clip, target, scene_length + 0.15)
+        normalized.append(target)
+
+    concat_file = base.BUILD / "concat-scenes.txt"
+    lines = []
+    for clip in normalized:
+        escaped = str(clip.resolve()).replace("'", "'\\''")
+        lines.append(f"file '{escaped}'")
+    concat_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    raw_montage = base.BUILD / "raw-montage.mp4"
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_file),
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-an", str(raw_montage),
+    ], check=True)
+
+    subprocess.run([
+        "ffmpeg", "-y", "-stream_loop", "-1", "-i", str(raw_montage), "-i", str(voice),
+        "-t", f"{duration:.3f}", "-vf", _quran_ass_filter(),
+        "-map", "0:v:0", "-map", "1:a:0", "-c:v", "libx264", "-preset", "medium",
+        "-crf", "21", "-c:a", "aac", "-b:a", "160k", "-pix_fmt", "yuv420p",
+        "-shortest", str(output),
+    ], check=True)
+
+
+def render_photo_fallback(backgrounds: list[Path], voice: Path, subtitles: Path, output: Path, duration: float) -> None:
+    if CURRENT_CONTEXT.get("content_type") != "quran":
+        return ORIGINAL_RENDER_PHOTO_FALLBACK(backgrounds, voice, subtitles, output, duration)
+
+    count = len(backgrounds)
+    segment = duration / count
+    cmd = ["ffmpeg", "-y"]
+    for image in backgrounds:
+        cmd += ["-loop", "1", "-framerate", "30", "-t", f"{segment:.3f}", "-i", str(image)]
+    cmd += ["-i", str(voice)]
+
+    filters = []
+    for i in range(count):
+        filters.append(
+            f"[{i}:v]scale=1200:2134:force_original_aspect_ratio=increase,crop=1080:1920,"
+            f"zoompan=z='min(zoom+0.00065,1.07)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+            f"d=1:s=1080x1920:fps=30,trim=duration={segment:.3f},setpts=PTS-STARTPTS[v{i}]"
+        )
+    joined = "".join(f"[v{i}]" for i in range(count))
+    filters.append(f"{joined}concat=n={count}:v=1:a=0[basev]")
+    filters.append(f"[basev]{_quran_ass_filter()}[vout]")
+    cmd += [
+        "-filter_complex", ";".join(filters), "-map", "[vout]", "-map", f"{count}:a:0",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "21", "-c:a", "aac",
+        "-b:a", "160k", "-pix_fmt", "yuv420p", "-shortest", str(output),
+    ]
+    subprocess.run(cmd, check=True)
+
+
 base.pick_global_topic = pick_global_topic
 base.download_commons_video = download_commons_video
 base.download_video_set = download_video_set
+base.choose_content = choose_content
+base.pipeline.create_subtitles = create_subtitles
+base.render_montage = render_montage
+base.render_photo_fallback = render_photo_fallback
 
 
 def main() -> None:
