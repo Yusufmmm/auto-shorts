@@ -276,7 +276,50 @@
           "duration": 14.585
         }
       ]
+    },
+    {
+      "created_at": "2026-09-18T07:07:38.754348+00:00",
+      "topic": "the science of bioluminescence",
+      "video_id": "ZguyI7aRA2M",
+      "title": "The Secret Science of Glowing Animals",
+      "language": "en",
+      "content_type": "fact",
+      "visual_mode": "licensed_video_montage",
+      "media": [
+        {
+          "title": "File:South Fork Clackamas Wild and Scenic River (28287613250).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:South_Fork_Clackamas_Wild_and_Scenic_River_(28287613250).webm",
+          "license": "Public domain",
+          "artist": "BLM Oregon &amp; Washington",
+          "mime": "video/webm",
+          "duration": 14.648
+        },
+        {
+          "title": "File:Molalla River in autumn (44506755054).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:Molalla_River_in_autumn_(44506755054).webm",
+          "license": "Public domain",
+          "artist": "BLM Oregon &amp; Washington",
+          "mime": "video/webm",
+          "duration": 22.422
+        },
+        {
+          "title": "File:Lost Lake (33470477832).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:Lost_Lake_(33470477832).webm",
+          "license": "Public domain",
+          "artist": "BLM Oregon &amp; Washington",
+          "mime": "video/webm",
+          "duration": 12.388
+        },
+        {
+          "title": "File:Little Applegate River (50982975823).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:Little_Applegate_River_(50982975823).webm",
+          "license": "Public domain",
+          "artist": "BLM Oregon &amp; Washington",
+          "mime": "video/webm",
+          "duration": 30.23
+        }
+      ]
     }
   ],
-  "runs": 8
+  "runs": 9
 }
