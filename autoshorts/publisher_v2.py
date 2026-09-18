@@ -243,6 +243,17 @@ def _escape_ass(text: str) -> str:
     return text.replace("\\", r"\\").replace("{", r"\{").replace("}", r"\}").replace("\n", r"\N")
 
 
+def _wrap_quran_text(text: str, words_per_line: int = 6) -> str:
+    """Keep long verses readable on a vertical phone screen."""
+    words = text.split()
+    if len(words) <= words_per_line:
+        return text
+    lines = []
+    for i in range(0, len(words), words_per_line):
+        lines.append(" ".join(words[i:i + words_per_line]))
+    return r"\N".join(lines)
+
+
 def create_quran_ass(package: dict, duration: float, destination: Path) -> None:
     verses = list(package.get("verses") or [])
     opening = (package.get("opening") or "").strip()
@@ -270,15 +281,25 @@ def create_quran_ass(package: dict, duration: float, destination: Path) -> None:
         cursor = end
 
         if number is None:
-            display = text
+            display = _wrap_quran_text(text, 5)
             style = "Opening"
+            event_lines.append(
+                f"Dialogue: 0,{_ass_time(start)},{_ass_time(end)},{style},,0,0,0,,"
+                f"{{\\fad(260,260)}}{_escape_ass(display)}"
+            )
         else:
-            display = f"{text}  ﴿{_arabic_number(number)}﴾"
-            style = "Verse"
-        event_lines.append(
-            f"Dialogue: 0,{_ass_time(start)},{_ass_time(end)},{style},,0,0,0,,"
-            f"{{\\fad(280,280)}}{_escape_ass(display)}"
-        )
+            display = _wrap_quran_text(text, 6)
+            event_lines.append(
+                f"Dialogue: 0,{_ass_time(start)},{_ass_time(end)},Verse,,0,0,0,,"
+                f"{{\\fad(260,260)}}{_escape_ass(display)}"
+            )
+            # Put the verse number on its own line. Using a single Qur'anic end-of-ayah
+            # ornament avoids the RTL mirroring problem of paired ornate brackets.
+            marker = f"۝ {_arabic_number(number)}"
+            event_lines.append(
+                f"Dialogue: 1,{_ass_time(start)},{_ass_time(end)},VerseNo,,0,0,0,,"
+                f"{{\\fad(260,260)}}{_escape_ass(marker)}"
+            )
 
     title_line = (
         f"Dialogue: 0,{_ass_time(0)},{_ass_time(duration)},SurahTitle,,0,0,0,,"
@@ -294,9 +315,10 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
-Style: SurahTitle,Noto Naskh Arabic,48,&H0000D7FF,&H0000D7FF,&H00111111,&H55000000,-1,0,0,0,100,100,0,0,1,2,1,8,80,80,105,1
-Style: Opening,Noto Naskh Arabic,68,&H00FFFFFF,&H00FFFFFF,&H00101010,&H72000000,-1,0,0,0,100,100,0,0,3,2,0,5,95,95,0,1
-Style: Verse,Noto Naskh Arabic,72,&H00FFFFFF,&H0000D7FF,&H00101010,&H72000000,-1,0,0,0,100,100,0,0,3,2,0,5,85,85,0,1
+Style: SurahTitle,Noto Naskh Arabic,50,&H0000D7FF,&H0000D7FF,&H00111111,&H55000000,-1,0,0,0,100,100,0,0,1,2,1,8,80,80,95,1
+Style: Opening,Noto Naskh Arabic,66,&H00FFFFFF,&H00FFFFFF,&H00101010,&H70000000,-1,0,0,0,100,100,0,0,3,2,0,5,100,100,0,1
+Style: Verse,Noto Naskh Arabic,70,&H00FFFFFF,&H00FFFFFF,&H00101010,&H70000000,-1,0,0,0,100,100,0,0,3,2,0,5,95,95,30,1
+Style: VerseNo,Noto Naskh Arabic,42,&H0000D7FF,&H0000D7FF,&H00101010,&H55000000,-1,0,0,0,100,100,0,0,1,2,1,2,0,0,330,1
 
 [Events]
 Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
