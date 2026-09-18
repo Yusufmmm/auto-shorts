@@ -427,7 +427,36 @@
         "artist": "Ibrahimmusa4",
         "mime": "application/ogg"
       }
+    },
+    {
+      "created_at": "2026-09-18T15:57:54.128902+00:00",
+      "topic": "how migrating birds navigate",
+      "video_id": "K_xXfZDql6w",
+      "title": "How Migrating Birds Navigate Without A Map",
+      "language": "en",
+      "content_type": "fact",
+      "visual_mode": "moving_licensed_photos",
+      "media": [
+        {
+          "title": "File:Apus apus flock flying 1.jpg",
+          "source": "https://commons.wikimedia.org/wiki/File:Apus_apus_flock_flying_1.jpg",
+          "license": "CC BY-SA 3.0",
+          "artist": "Keta"
+        },
+        {
+          "title": "File:Gryfice 2007 bird's-eye view 02.jpg",
+          "source": "https://commons.wikimedia.org/wiki/File:Gryfice_2007_bird%27s-eye_view_02.jpg",
+          "license": "CC BY-SA 3.0",
+          "artist": "Wiesław Wojciech Schmidt"
+        },
+        {
+          "title": "File:PSM V09 D158 Crane throat structure.jpg",
+          "source": "https://commons.wikimedia.org/wiki/File:PSM_V09_D158_Crane_throat_structure.jpg",
+          "license": "Public domain",
+          "artist": "Unknown authorUnknown author"
+        }
+      ]
     }
   ],
-  "runs": 12
+  "runs": 13
 }
