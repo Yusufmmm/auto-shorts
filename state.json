@@ -319,7 +319,43 @@
           "duration": 30.23
         }
       ]
+    },
+    {
+      "created_at": "2026-09-18T11:05:28.748905+00:00",
+      "topic": "Quran Surah Ash-Sharh 94",
+      "video_id": "ewBcCIUUtFQ",
+      "title": "سورة الشرح | تلاوة بشرية",
+      "language": "ar",
+      "content_type": "quran",
+      "visual_mode": "moving_licensed_photos",
+      "media": [
+        {
+          "title": "File:Dove Lake, Sunrise.jpg",
+          "source": "https://commons.wikimedia.org/wiki/File:Dove_Lake,_Sunrise.jpg",
+          "license": "CC BY-SA 4.0",
+          "artist": "Josh Fotheringham"
+        },
+        {
+          "title": "File:Bieszczady - sunrise from Chatka Puchatka (2).jpg",
+          "source": "https://commons.wikimedia.org/wiki/File:Bieszczady_-_sunrise_from_Chatka_Puchatka_(2).jpg",
+          "license": "CC BY-SA 4.0",
+          "artist": "Pudelek"
+        },
+        {
+          "title": "File:Before dawn of Rokko Mountain range.JPG",
+          "source": "https://commons.wikimedia.org/wiki/File:Before_dawn_of_Rokko_Mountain_range.JPG",
+          "license": "CC BY-SA 3.0",
+          "artist": "Mti"
+        }
+      ],
+      "audio": {
+        "title": "File:Chapter 94, Ash-Sharh (Murattal) - Recitation of the Holy Qur'an.mp3",
+        "source": "https://commons.wikimedia.org/wiki/File:Chapter_94,_Ash-Sharh_(Murattal)_-_Recitation_of_the_Holy_Qur%27an.mp3",
+        "license": "CC0",
+        "artist": "Atcovi",
+        "mime": "audio/mpeg"
+      }
     }
   ],
-  "runs": 9
+  "runs": 10
 }
