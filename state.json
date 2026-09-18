@@ -456,7 +456,43 @@
           "artist": "Unknown authorUnknown author"
         }
       ]
+    },
+    {
+      "created_at": "2026-09-18T19:59:09.049145+00:00",
+      "topic": "Quran Surah Al-Fatiha 1",
+      "video_id": "y28spaZ9ERw",
+      "title": "سورة الفاتحة | تلاوة بشرية",
+      "language": "ar",
+      "content_type": "quran",
+      "visual_mode": "moving_licensed_photos",
+      "media": [
+        {
+          "title": "File:Late Winter Sunrise on Lake Okanagan.JPG",
+          "source": "https://commons.wikimedia.org/wiki/File:Late_Winter_Sunrise_on_Lake_Okanagan.JPG",
+          "license": "CC0",
+          "artist": "Extemporalist"
+        },
+        {
+          "title": "File:Plan of the city and environs of Hang-chow 1716-27.jpg",
+          "source": "https://commons.wikimedia.org/wiki/File:Plan_of_the_city_and_environs_of_Hang-chow_1716-27.jpg",
+          "license": "Public domain",
+          "artist": "AnonymousUnknown author"
+        },
+        {
+          "title": "File:Silhouette of a fisherman on his pirogue at sunrise in Si Phan Don Laos.jpg",
+          "source": "https://commons.wikimedia.org/wiki/File:Silhouette_of_a_fisherman_on_his_pirogue_at_sunrise_in_Si_Phan_Don_Laos.jpg",
+          "license": "CC BY-SA 4.0",
+          "artist": "Basile Morin"
+        }
+      ],
+      "audio": {
+        "title": "File:AlFātihatulKitāb.ogg",
+        "source": "https://commons.wikimedia.org/wiki/File:AlF%C4%81tihatulKit%C4%81b.ogg",
+        "license": "CC0",
+        "artist": "Ibrahimmusa4",
+        "mime": "application/ogg"
+      }
     }
   ],
-  "runs": 13
+  "runs": 14
 }
