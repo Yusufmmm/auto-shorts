@@ -45,8 +45,18 @@ def ask_json(prompt):
             return data
     raise RuntimeError('No configured generation model succeeded')
 
-def generate_feature(state):
+def pick_topic(state):
+    used = {x.get('topic','').lower() for x in state.get('published', [])}
     topic = previous.pick_global_topic(state)
+    if topic.lower() in used or topic == 'a fascinating science fact most people do not know':
+        result = ask_json('Return JSON with topic: one specific original evergreen science, nature or history subject, excluding all these subjects: '+json.dumps(sorted(used)))
+        topic = result['topic'].strip()
+    if not topic or topic.lower() in used:
+        raise ValueError('No new factual topic available')
+    return topic
+
+def generate_feature(state):
+    topic = pick_topic(state)
     outline = ask_json(f'''Write an original educational documentary outline on {topic}.
 Not a compilation of shorts. One coherent narrative: introduction, six connected chapters,
 and conclusion. Evergreen established facts only, no breaking news claims. Return JSON:
@@ -77,16 +87,18 @@ def choose(state, kind, force_content=None):
     for item in state.get('published', []):
         if datetime.fromisoformat(item['created_at']).astimezone(ZoneInfo('Europe/Amsterdam')).date().isoformat() == day:
             today_types.add(item.get('content_type'))
-    desired = force_content or next((x for x in ('quran','hadith','fact') if x not in today_types), 'fact')
+    candidates = [force_content] if force_content else [x for x in ('quran','hadith','fact') if x not in today_types]
     # Quran/hadith text comes only from the reviewed catalogue, never from AI.
-    if desired in ('quran','hadith'):
+    for desired in candidates:
+        if desired not in ('quran','hadith'):
+            break
         for item in base.RELIGIOUS[desired]:
             if item['topic'] not in used:
                 if desired == 'quran' and not item.get('human_audio_file'):
                     raise ValueError('Quran requires licensed human recitation')
                 return item['topic'], copy.deepcopy(item), 'ar', desired
-        print(f'No unused reviewed {desired} entry: use a new factual topic, never recycle scripture')
-    topic = previous.pick_global_topic(state)
+        print(f'No unused reviewed {desired} entry: try another category, never recycle scripture')
+    topic = pick_topic(state)
     if topic in used:
         raise ValueError('Topic catalogue exhausted; refusing repetition')
     return topic, base.pipeline.generate_package(topic), 'en', 'fact'

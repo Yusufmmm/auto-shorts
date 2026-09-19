@@ -34,3 +34,18 @@ def test_weekly_limit_and_campaign_end():
 def test_invalid_verse_cues_are_rejected():
     with pytest.raises(ValueError):validate_timings([(0,3),(2,6)],2,6)
     with pytest.raises(ValueError):validate_timings([(0,7)],1,6)
+
+def test_quran_ass_preserves_rtl_lines_and_ornament(tmp_path):
+    from autoshorts.publisher_v3 import quran_ass
+    p={'title':'سورة','verses':[{'number':12,'text':'هذه كلمات كثيرة لاختبار سطر عربي صحيح وواضح'}], 'verse_timings':[(0,5)]}
+    output=tmp_path/'q.ass'
+    assert quran_ass(p,tmp_path/'unused',5,output)=='reviewed_cues'
+    text=output.read_text()
+    assert '١٢' in text and r'\p1' in text and 'Amiri' in text
+    assert r'\N' in text and r'\\N' not in text
+
+def test_exhausted_quran_still_selects_unused_hadith(monkeypatch):
+    from autoshorts import publisher_v3 as p
+    monkeypatch.setattr(p,'publication_slot',lambda *_:'short:2026-09-20:0')
+    monkeypatch.setattr(p.base,'RELIGIOUS',{'quran':[],'hadith':[{'topic':'new hadith','script':'reviewed'}]})
+    assert p.choose({'published':[]},'short')[3]=='hadith'

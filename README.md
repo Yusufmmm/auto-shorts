@@ -17,7 +17,7 @@ A maximum of three Shorts per Amsterdam calendar day and one feature per ISO wee
 - Media accepts CC0, public domain and CC BY 3.0/4.0 with author, source, license link and change notice. NC, ND, unknown and share-alike material are excluded. Metadata is checked per run; it does not guarantee an uploader owns every right.
 - Clip titles and downloaded SHA-256 checksums are checked against history. Each selected source is used once, at normal speed. Footage must cover the full narration. No image fallback or repeated-video fallback.
 - Output: 1080×1920 Shorts; 1920×1080 features; H.264 CRF19, AAC192k, normalized audio.
-- Quran captions use Amiri, shaped RTL via libass, Arabic ayah numbers and the Quranic end-of-ayah glyph. Manually reviewed verse cues (`verse_timings`, seconds per opening/verse) take priority. Without them the system logs `silence_assisted_estimate`: approximate, not word-perfect synchronization.
+- Quran captions use Amiri, shaped RTL via libass, Arabic ayah numbers centered inside a separately drawn ornament. Manually reviewed verse cues (`verse_timings`, seconds per opening/verse) take priority. Without them the system logs `silence_assisted_estimate`: approximate, not word-perfect synchronization.
 - Non-Quran narration uses the existing Edge TTS service with actual word boundary captions; narration is disclosed as synthetic. No cloning of real speakers.
 
 ## Safety against duplicate uploads
