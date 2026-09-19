@@ -1,46 +1,40 @@
-# Auto Shorts
+# Auto Shorts v3
 
-Automated, license-aware pipeline that creates and uploads two original English YouTube Shorts per day for up to 30 days (60 videos).
+Production entrypoint: `python -m autoshorts.publisher_v3`.
 
-## What it does
+## Schedule
 
-1. Reads Google Trends RSS and avoids topics already stored in `state.json`.
-2. Uses Gemini to write an original 105–125 word script, hook, title, description and hashtags.
-3. Downloads only an allowlisted Creative Commons/Public Domain image from Wikimedia Commons and records its attribution.
-4. Produces English neural narration with Edge TTS, a 1080×1920 video, motion and burned-in subtitles.
-5. Uploads through the official YouTube Data API.
-6. Runs at 08:17 and 18:17 UTC in GitHub Actions. The workflow is serialized to prevent duplicate uploads.
+GitHub Actions runs Shorts at **07:17, 12:17, 18:17 UTC**, and an original long feature on **Sunday 09:37 UTC**. Amsterdam times in summer: 09:17 / 14:17 / 20:17 and Sunday 11:37. Winter times are one hour earlier. GitHub may delay scheduled jobs. The previous ChatGPT four-times-daily publisher must remain disabled to avoid competing triggers.
 
-Uploads default to **private** for safety. After reviewing initial results, change `privacy_status` in `config.json` to `public`.
+A maximum of three Shorts per Amsterdam calendar day and one feature per ISO week includes manual runs and legacy uploads. The campaign stops 30 days after the first v3 run. Content generation is best effort: no eligible media or failed quality gates means no upload, never a low-quality or unlicensed substitute.
 
-## Required GitHub Secrets
+## Editorial and licensing
 
-- `GEMINI_API_KEY`
-- `YOUTUBE_CLIENT_ID`
-- `YOUTUBE_CLIENT_SECRET`
-- `YOUTUBE_REFRESH_TOKEN`
+- Quran uses only human recordings whose current Commons metadata satisfies the required CC0 license. Never TTS for Quran.
+- Reviewed Quran/hadith catalogue is used without AI rewriting. Exhausted entries fall back to a new factual Short; extending the catalogue is necessary to sustain daily religious variety.
+- Facts use filtered worldwide trend feeds with evergreen fallbacks; a fallback is not labelled trending.
+- Weekly features have an introduction, six connected chapters and a conclusion, generated as a coherent original narrative. Actual audio must be 12–20 minutes: no loops, padding or stitched Shorts.
+- Media accepts CC0, public domain and CC BY 3.0/4.0 with author, source, license link and change notice. NC, ND, unknown and share-alike material are excluded. Metadata is checked per run; it does not guarantee an uploader owns every right.
+- Clip titles and downloaded SHA-256 checksums are checked against history. Each selected source is used once, at normal speed. Footage must cover the full narration. No image fallback or repeated-video fallback.
+- Output: 1080×1920 Shorts; 1920×1080 features; H.264 CRF19, AAC192k, normalized audio.
+- Quran captions use Amiri, shaped RTL via libass, Arabic ayah numbers and the Quranic end-of-ayah glyph. Manually reviewed verse cues (`verse_timings`, seconds per opening/verse) take priority. Without them the system logs `silence_assisted_estimate`: approximate, not word-perfect synchronization.
+- Non-Quran narration uses the existing Edge TTS service with actual word boundary captions; narration is disclosed as synthetic. No cloning of real speakers.
 
-No credential belongs in source code. A Pexels key is not needed; media comes from Wikimedia Commons with a strict license allowlist.
+## Safety against duplicate uploads
 
-## One-time YouTube authorization
+One concurrency group serializes publishing. Before uploading, a `pending_upload` reservation is committed and pushed. A failed push prevents upload. An unresolved reservation blocks subsequent uploads until the channel and upload receipt are reconciled. This sacrifices automatic retries when the remote outcome is ambiguous to avoid duplicates. Do not clear a reservation without checking YouTube.
 
-1. In Google Cloud, enable **YouTube Data API v3**.
-2. Configure the OAuth consent screen and add your Google account as a test user if the app is in Testing.
-3. Create an OAuth 2.0 Client ID of type **Desktop app** and download its JSON.
-4. On a trusted computer, install requirements and run `python scripts/get_youtube_token.py`.
-5. Paste the JSON when asked, approve your YouTube account, then add the three printed values as GitHub repository secrets.
-6. Create a Gemini API key in Google AI Studio and add it as `GEMINI_API_KEY`.
-7. In GitHub Actions, run **Create and upload YouTube Short** manually once. Check the private upload before making publishing public.
+The workflow preserves the rendered video, caption files, manifest and upload receipt as artifacts for 14 days, including on failure. Successful uploads write a canonical video link in the run summary and `logs/`.
 
-## Local tests
+## Run and test
 
-```bash
+```
+pip install -r requirements.txt
 python -m pytest -q
+python -m autoshorts.publisher_v3 --dry-run
+python -m autoshorts.publisher_v3 --kind long --dry-run
 ```
 
-## Safety and limits
+Install FFmpeg/libass and `fonts-hosny-amiri`. Required GitHub secrets are unchanged: `GEMINI_API_KEY`, `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`. Never commit credentials or print tokens.
 
-- Scripts are original, but automated factual output must still be monitored.
-- Media attribution and licenses are saved under `logs/`.
-- YouTube API uploads cost quota; the default daily quota normally supports this schedule, but quota is controlled by Google.
-- The campaign stops after 60 successful uploads. Failed runs do not increment the counter.
+Manual workflow dispatch can select `short` or `long` and `dry_run`. Updating `.github/auto-shorts-trigger` triggers one Short, subject to the same quota and license gates. Trigger text no longer overrides content selection. `publisher_v2` and earlier modules remain only as reusable helpers and historical code; do not schedule them.

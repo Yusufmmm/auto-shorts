@@ -3,10 +3,13 @@
   "language": "en-US",
   "voice": "en-US-AriaNeural",
   "arabic_voice": "ar-SA-HamedNeural",
-  "videos_per_day": 4,
+  "videos_per_day": 3,
   "religious_videos_per_day": 2,
   "max_days": 30,
-  "max_videos": 120,
+  "max_videos": 90,
   "privacy_status": "public",
-  "duration_target_seconds": 45
+  "duration_target_seconds": 45,
+  "long_videos_per_week": 1,
+  "long_duration_min_seconds": 720,
+  "long_duration_max_seconds": 1200
 }
