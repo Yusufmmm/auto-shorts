@@ -609,13 +609,61 @@
       "chapters": [],
       "visual_mode": "unique_licensed_video_no_loop",
       "video_id": "2EWlu9eJM-w"
+    },
+    {
+      "created_at": "2026-09-20T12:28:48.299054+00:00",
+      "topic": "Quran Surah An-Nasr 110",
+      "title": "سورة النصر | تلاوة بشرية",
+      "language": "ar",
+      "content_type": "quran",
+      "format": "short",
+      "slot": "short:2026-09-20:0",
+      "week": "2026-W38",
+      "media": [
+        {
+          "title": "File:South Fork Clackamas Wild and Scenic River (28539300796).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:South_Fork_Clackamas_Wild_and_Scenic_River_(28539300796).webm",
+          "license": "Public domain",
+          "artist": "BLM Oregon &amp; Washington",
+          "mime": "video/webm",
+          "duration": 13.28,
+          "sha256": "fe04798c1784287606c6b7c45f54d50d35f9ec3e6c5c48ab3a25510f8cf4f8ae"
+        },
+        {
+          "title": "File:Lost Lake (33497865281).webm",
+          "source": "https://commons.wikimedia.org/wiki/File:Lost_Lake_(33497865281).webm",
+          "license": "Public domain",
+          "artist": "BLM Oregon &amp; Washington",
+          "mime": "video/webm",
+          "duration": 28.529,
+          "sha256": "3109332a651ecfaeb741350e98e63a74ad42c1ff9b6883a1f7a96771eed71bb4"
+        },
+        {
+          "title": "File:富士山頂御来光 Go-raikou(The sunrise) at summit of Mt.Fuji HDR-CX560V.webm",
+          "source": "https://commons.wikimedia.org/wiki/File:%E5%AF%8C%E5%A3%AB%E5%B1%B1%E9%A0%82%E5%BE%A1%E6%9D%A5%E5%85%89_Go-raikou(The_sunrise)_at_summit_of_Mt.Fuji_HDR-CX560V.webm",
+          "license": "CC BY 3.0",
+          "artist": "https://www.youtube.com/user/redwing115",
+          "mime": "video/webm",
+          "duration": 749.733,
+          "sha256": "0591ba9fb558745ea282ad37e36186dbfcc1ce4ba4029f56e16585aa57fa3ac1"
+        }
+      ],
+      "audio": {
+        "title": "File:Chapter 110, An-Nasr (Murattal) - Recitation of the Holy Qur'an.mp3",
+        "source": "https://commons.wikimedia.org/wiki/File:Chapter_110,_An-Nasr_(Murattal)_-_Recitation_of_the_Holy_Qur%27an.mp3",
+        "license": "CC0",
+        "artist": "Atcovi",
+        "mime": "audio/mpeg"
+      },
+      "script_hash": "df9576f819d04afa77b12d7d45fb7aefcc093d5af8541f1a23643b70e2ae4bc6",
+      "script": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ. إِذَا جَاءَ نَصْرُ اللَّهِ وَالْفَتْحُ. وَرَأَيْتَ النَّاسَ يَدْخُلُونَ فِي دِينِ اللَّهِ أَفْوَاجًا. فَسَبِّحْ بِحَمْدِ رَبِّكَ وَاسْتَغْفِرْهُ إِنَّهُ كَانَ تَوَّابًا",
+      "duration": 41.769796,
+      "timing_mode": "silence_assisted_estimate",
+      "chapters": [],
+      "visual_mode": "unique_licensed_video_no_loop",
+      "video_id": "ni8X-5whaZM"
     }
   ],
-  "runs": 17,
-  "campaign_v3_start": "2026-09-19T14:43:31.570671+00:00",
-  "pending_upload": {
-    "slot": "short:2026-09-20:0",
-    "script_hash": "df9576f819d04afa77b12d7d45fb7aefcc093d5af8541f1a23643b70e2ae4bc6",
-    "started_at": "2026-09-20T12:28:48.299054+00:00"
-  }
+  "runs": 18,
+  "campaign_v3_start": "2026-09-19T14:43:31.570671+00:00"
 }
