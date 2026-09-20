@@ -1,0 +1,38 @@
+{
+  "created_at": "2026-09-20T20:55:13.707328+00:00",
+  "topic": "Sahih Bukhari 1 intentions",
+  "title": "إنما الأعمال بالنيات | حديث صحيح",
+  "language": "ar",
+  "content_type": "hadith",
+  "format": "short",
+  "slot": "short:2026-09-20:1",
+  "week": "2026-W38",
+  "media": [
+    {
+      "title": "File:South Fork Clackamas Wild and Scenic River (28287735390).webm",
+      "source": "https://commons.wikimedia.org/wiki/File:South_Fork_Clackamas_Wild_and_Scenic_River_(28287735390).webm",
+      "license": "Public domain",
+      "artist": "BLM Oregon &amp; Washington",
+      "mime": "video/webm",
+      "duration": 19.786,
+      "sha256": "a6fc6853fced78d37f9369b39484564ed0a7bf25fb8e64d04315bf5e9ae703ff"
+    },
+    {
+      "title": "File:Lost Lake (33586039086).webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Lost_Lake_(33586039086).webm",
+      "license": "Public domain",
+      "artist": "BLM Oregon &amp; Washington",
+      "mime": "video/webm",
+      "duration": 36.954,
+      "sha256": "e51ce39f1abe1892fb468316c8adf2cb30f3928638dc02935b3ae957f421a503"
+    }
+  ],
+  "audio": null,
+  "script_hash": "24ad410b0fe348bfc3cc17c03ce9c5f70f1d447486720e00674dd39cd2cdece0",
+  "script": "قال رسول الله صلى الله عليه وسلم: إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى. رواه البخاري. هذا الحديث يذكّرنا أن قيمة العمل تبدأ من نيتك. قبل أن تبدأ يومك أو عملك، صحّح نيتك واجعلها لله.",
+  "duration": 21.36,
+  "timing_mode": "speech_word_boundaries",
+  "chapters": [],
+  "visual_mode": "unique_licensed_video_no_loop",
+  "video_id": "pRs7_2NZRKM"
+}
