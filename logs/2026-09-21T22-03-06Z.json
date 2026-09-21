@@ -1,0 +1,38 @@
+{
+  "created_at": "2026-09-21T22:03:06.600935+00:00",
+  "topic": "Sahih Bukhari 6018 kind speech",
+  "title": "فليقل خيرا أو ليصمت | حديث صحيح",
+  "language": "ar",
+  "content_type": "hadith",
+  "format": "short",
+  "slot": "short:2026-09-22:0",
+  "week": "2026-W39",
+  "media": [
+    {
+      "title": "File:Nerang River at Numinbah Valley, Queensland.webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Nerang_River_at_Numinbah_Valley,_Queensland.webm",
+      "license": "CC0",
+      "artist": "Shiftchange",
+      "mime": "video/webm",
+      "duration": 29.0,
+      "sha256": "1066b5c05ca921aab07864a1eb2e3a6fe7a56f8e30a980aacda2fa2702f06b23"
+    },
+    {
+      "title": "File:Crooked River (23467104578).webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Crooked_River_(23467104578).webm",
+      "license": "Public domain",
+      "artist": "BLM Oregon &amp; Washington",
+      "mime": "video/webm",
+      "duration": 19.619,
+      "sha256": "e3cc5c88d8367c50060519e0bb58f9ef1d590d7ed76ef242c2ba30e9f937cd96"
+    }
+  ],
+  "audio": null,
+  "script_hash": "1dc9df9d4e3712d6f00a3e9f6e87a23d0d415255d201f6804f67375096f8626e",
+  "script": "قال رسول الله صلى الله عليه وسلم: مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ. رواه البخاري، الحديث ٦٠١٨. انتهى نص الحديث. قبل أن تكتب تعليقاً أو ترسل رسالة، فكّر في أثر كلماتك. اختر كلاماً ينفع ولا يجرح، وإن لم تجد كلمة طيبة، يمكنك أن تسكت.",
+  "duration": 29.592,
+  "timing_mode": "speech_word_boundaries",
+  "chapters": [],
+  "visual_mode": "unique_licensed_video_no_loop",
+  "video_id": "0OZUSOu2OZs"
+}
