@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-09-21T14:19:05.776719+00:00",
+  "topic": "Quran Surah Al-Kawthar 108",
+  "title": "سورة الكوثر | تلاوة بشرية",
+  "language": "ar",
+  "content_type": "quran",
+  "format": "short",
+  "slot": "short:2026-09-21:0",
+  "week": "2026-W39",
+  "media": [
+    {
+      "title": "File:Waterfall on Falls Creek, south of Augusta, Montana (52974925584).webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Waterfall_on_Falls_Creek,_south_of_Augusta,_Montana_(52974925584).webm",
+      "license": "Public domain",
+      "artist": "Forest Service - Northern Region",
+      "mime": "video/webm",
+      "duration": 21.221,
+      "sha256": "91da61c1748eb8620419c66bdffc443ecd8a2cd13b84758feb5e952d50a15298"
+    },
+    {
+      "title": "File:Mountain Moment- Sunrise Point Marmots.webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Mountain_Moment-_Sunrise_Point_Marmots.webm",
+      "license": "CC BY 3.0",
+      "artist": "Mount Rainier National Park",
+      "mime": "video/webm",
+      "duration": 62.283,
+      "sha256": "d128a3264bb0f0a3a2c024c77b243b8dd128bab7a3eaaa16666ffdc802abda07"
+    }
+  ],
+  "audio": {
+    "title": "File:Chapter 108, Al-Kawthar (Murattal) - Recitation of the Holy Qur'an.mp3",
+    "source": "https://commons.wikimedia.org/wiki/File:Chapter_108,_Al-Kawthar_(Murattal)_-_Recitation_of_the_Holy_Qur%27an.mp3",
+    "license": "CC0",
+    "artist": "Atcovi",
+    "mime": "audio/mpeg"
+  },
+  "script_hash": "41237c3e785d0d5dbb9df03a9fa4edf1914f9c3d9da474d7321cfb7bc2a677eb",
+  "script": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ. إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ. فَصَلِّ لِرَبِّكَ وَانْحَرْ. إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ",
+  "duration": 26.6449,
+  "timing_mode": "silence_assisted_estimate",
+  "chapters": [],
+  "visual_mode": "unique_licensed_video_no_loop",
+  "video_id": "A3sTkWAI7cY"
+}
