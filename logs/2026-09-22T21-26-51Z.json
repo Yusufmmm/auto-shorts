@@ -1,0 +1,29 @@
+{
+  "created_at": "2026-09-22T21:26:51.631281+00:00",
+  "topic": "a counterintuitive fact about the solar system",
+  "title": "Fit All Planets Between Earth And Moon?",
+  "language": "en",
+  "content_type": "fact",
+  "format": "short",
+  "slot": "short:2026-09-22:1",
+  "week": "2026-W39",
+  "media": [
+    {
+      "title": "File:Moon distance 2020 4K.webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Moon_distance_2020_4K.webm",
+      "license": "Public domain",
+      "artist": "NASA Goddard/ Ernie Wright",
+      "mime": "video/webm",
+      "duration": 293.8,
+      "sha256": "843a07e2a6f85f723186b8afc9b6e0a6643c949c46a0e21a9435ac1557251865"
+    }
+  ],
+  "audio": null,
+  "script_hash": "8d8a79e515c86c6ec96469c9768d125ad5283a34174d600a30a710910b299eb2",
+  "script": "Pluto is famous for being demoted, but that is not even the weirdest fact about our solar system. The most mind bending truth is that you could actually fit every single planet between the Earth and the Moon with room to spare! The average distance from us to our lunar neighbor is about three hundred and eighty four thousand kilometers. When you line up the diameters of Mercury, Venus, Mars, Jupiter, Saturn, Uranus, and Neptune back-to-back, they total roughly three hundred and seventy nine thousand kilometers. Saturn and Jupiter are massive, but the sheer emptiness of space dwarfs them all. Next time you look up at the night moon, remember just how huge that cosmic gap really is.",
+  "duration": 44.784,
+  "timing_mode": "speech_word_boundaries",
+  "chapters": [],
+  "visual_mode": "unique_licensed_video_no_loop",
+  "video_id": "wifNE5mwmL4"
+}
