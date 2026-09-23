@@ -890,5 +890,10 @@
     }
   ],
   "runs": 24,
-  "campaign_v3_start": "2026-09-19T14:43:31.570671+00:00"
+  "campaign_v3_start": "2026-09-19T14:43:31.570671+00:00",
+  "pending_upload": {
+    "slot": "short:2026-09-23:2",
+    "script_hash": "7cc8b95a95e3027703d1c96dbc7e7f64ceddd20c58958ac7e69f11bf58c4f9bc",
+    "started_at": "2026-09-23T21:35:35.222343+00:00"
+  }
 }
