@@ -68,8 +68,10 @@ def test_growth_package_requires_short_hook_and_multiple_visuals():
             'Octopuses can taste with their arms. '
             'Thousands of chemical sensors in their suckers help them inspect what they touch. '
             'That means an octopus can explore food and its surroundings without bringing every object to its mouth. '
-            'Researchers study these receptors to understand how the nervous system processes touch and chemistry together. '
-            'It is a striking example of how evolution can distribute sensing across an entire body. '
+            'These receptors help the animal distinguish useful chemical signals while it moves across rocks, shells, and prey. '
+            'The arms also contain large networks of neurons, so much of this sensing is processed close to where contact happens. '
+            'Researchers study these systems to understand how touch, chemistry, and movement work together in one distributed nervous system. '
+            'It is a striking example of how evolution can spread sensing across an entire body instead of concentrating every task in one place. '
             'Subscribe for more surprising science stories every day.'
         ),
         'title': 'How Octopuses Taste With Their Arms',
