@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import pytest
-from autoshorts.quality import scene_plan, credit, fingerprint, publication_slot, campaign_open, validate_timings
+from autoshorts.quality import scene_plan, credit, fingerprint, near_duplicate_text, publication_slot, campaign_open, validate_short_package, validate_timings
 
 def test_cannot_loop_insufficient_footage():
     with pytest.raises(ValueError): scene_plan([12,12],60)
@@ -49,3 +49,36 @@ def test_exhausted_quran_still_selects_unused_hadith(monkeypatch):
     monkeypatch.setattr(p,'publication_slot',lambda *_:'short:2026-09-20:0')
     monkeypatch.setattr(p.base,'RELIGIOUS',{'quran':[],'hadith':[{'topic':'new hadith','script':'reviewed'}]})
     assert p.choose({'published':[]},'short')[3]=='hadith'
+
+def test_near_duplicate_topics_are_detected():
+    assert near_duplicate_text(
+        'how migrating birds navigate using Earth magnetic field',
+        'how birds navigate with Earth magnetic field',
+        .55,
+    )
+    assert not near_duplicate_text(
+        'how migrating birds navigate',
+        'why deep sea animals glow',
+        .55,
+    )
+
+def test_growth_package_requires_short_hook_and_multiple_visuals():
+    package = {
+        'script': (
+            'Octopuses can taste with their arms. '
+            'Thousands of chemical sensors in their suckers help them inspect what they touch. '
+            'That means an octopus can explore food and its surroundings without bringing every object to its mouth. '
+            'Researchers study these receptors to understand how the nervous system processes touch and chemistry together. '
+            'It is a striking example of how evolution can distribute sensing across an entire body. '
+            'Subscribe for more surprising science stories every day.'
+        ),
+        'title': 'How Octopuses Taste With Their Arms',
+        'description': 'Octopus arms can detect chemicals while touching objects.',
+        'hashtags': ['#Science', '#Ocean', '#Shorts'],
+        'media_queries': ['octopus arm closeup', 'octopus suckers', 'octopus reef', 'octopus feeding', 'octopus underwater', 'octopus movement'],
+    }
+    assert validate_short_package(package) is package
+    bad = dict(package, title='You Won\'t Believe This SHOCKING TRUTH!!!')
+    with pytest.raises(ValueError):
+        validate_short_package(bad)
+
