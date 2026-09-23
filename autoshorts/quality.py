@@ -65,3 +65,54 @@ def validate_timings(timings, count, duration):
             raise ValueError('Invalid or overlapping verse timing')
         previous = end
     return timings
+
+CLICKBAIT_PHRASES = {
+    'you won\'t believe', 'mind blowing', 'mind-blowing', 'shocking truth',
+    'this changes everything', 'secret they don\'t want you to know'
+}
+
+def _text_tokens(text):
+    return {w for w in re.findall(r"[a-z0-9]+", (text or '').lower()) if len(w) > 2}
+
+def near_duplicate_text(candidate, previous, threshold=.68):
+    """Catch semantically-near repeats without blocking normal shared niche words."""
+    a, b = _text_tokens(candidate), _text_tokens(previous)
+    if not a or not b:
+        return False
+    score = len(a & b) / len(a | b)
+    return score >= threshold
+
+def validate_short_package(package):
+    """Fail fast on weak/repetitive Shorts packaging so generation can retry."""
+    required = {'script', 'title', 'description', 'hashtags', 'media_queries'}
+    if not required.issubset(package):
+        raise ValueError('Generated package is missing required fields')
+
+    script = str(package['script']).strip()
+    title = str(package['title']).strip()
+    words = script.split()
+    if not 80 <= len(words) <= 145:
+        raise ValueError('Generated script length is outside safety bounds')
+
+    first_sentence = re.split(r'(?<=[.!?])\s+', script, maxsplit=1)[0]
+    if len(first_sentence.split()) > 14:
+        raise ValueError('Hook is too long for the first seconds of a Short')
+    if len(first_sentence.split()) < 3:
+        raise ValueError('Hook is too short to communicate a useful promise')
+
+    lowered = (title + ' ' + first_sentence).lower()
+    if any(phrase in lowered for phrase in CLICKBAIT_PHRASES):
+        raise ValueError('Misleading or low-trust clickbait wording rejected')
+    if not 20 <= len(title) <= 70:
+        raise ValueError('Title length must stay between 20 and 70 characters')
+    if title.count('!') > 1 or title.count('?') > 1:
+        raise ValueError('Excessive title punctuation rejected')
+
+    hashtags = package.get('hashtags')
+    if not isinstance(hashtags, list) or not 3 <= len(hashtags) <= 6:
+        raise ValueError('Use 3-6 focused hashtags')
+    media_queries = package.get('media_queries')
+    if not isinstance(media_queries, list) or len(media_queries) < 5:
+        raise ValueError('Need at least five distinct visual search queries')
+    return package
+
