@@ -174,11 +174,26 @@ def quran_ass(package, voice, duration, output):
     output.write_text('\n'.join(lines)+'\n',encoding='utf-8')
     return mode
 
+def _visual_query_variants(query):
+    """Broaden over-specific generated searches while keeping the subject recognizable."""
+    cleaned = re.sub(r'\b(video|videos|footage|clip|clips|drone|aerial|view|close|closeup|landscape|cinematic)\b', ' ', query, flags=re.I)
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    words = [w for w in re.findall(r"[A-Za-z0-9'-]+", cleaned) if len(w) >= 4]
+    variants = [query.strip(), cleaned]
+    if len(words) >= 3:
+        variants.append(' '.join(words[:3]))
+    if len(words) >= 2:
+        variants.append(' '.join(words[:2]))
+    # Long distinctive words often map best to Commons titles (e.g. waterfall, bioluminescence).
+    variants.extend(sorted(set(words), key=len, reverse=True)[:3])
+    return [v for v in dict.fromkeys(variants) if v]
+
 def download_visuals(package,state,duration,content_type):
     strict = content_type in ('quran','hadith')
-    queries = list(base.NATURE_QUERIES) if strict else list(package.get('media_queries',[]))
-    # Broader single subject queries still pass relevance and license gates.
-    queries += [q.replace(' video','').replace(' drone','').replace(' landscape','') for q in queries]
+    source_queries = list(base.NATURE_QUERIES) if strict else list(package.get('media_queries',[]))
+    queries = []
+    for query in source_queries:
+        queries.extend(_visual_query_variants(query))
     used = base._used_media_titles(state)
     seen_hashes = {m.get('sha256') for r in state.get('published',[]) for m in (r.get('media',[]) if isinstance(r.get('media'),list) else [r.get('media',{})])}
     paths, credits, available = [], [], 0
