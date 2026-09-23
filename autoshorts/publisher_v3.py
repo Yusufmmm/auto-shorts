@@ -16,7 +16,7 @@ import edge_tts
 import requests
 from googleapiclient.http import MediaFileUpload
 from . import publisher_v2 as previous
-from .quality import LICENSE_URLS, campaign_open, credit, fingerprint, publication_slot, scene_plan, validate_timings
+from .quality import LICENSE_URLS, campaign_open, credit, fingerprint, near_duplicate_text, publication_slot, scene_plan, validate_timings
 
 base = previous.base
 ROOT, BUILD = base.ROOT, base.BUILD
@@ -46,13 +46,19 @@ def ask_json(prompt):
     raise RuntimeError('No configured generation model succeeded')
 
 def pick_topic(state):
-    used = {x.get('topic','').lower() for x in state.get('published', [])}
+    used = [x.get('topic','').strip() for x in state.get('published', []) if x.get('topic')]
     topic = previous.pick_global_topic(state)
-    if topic.lower() in used or topic == 'a fascinating science fact most people do not know':
-        result = ask_json('Return JSON with topic: one specific original evergreen science, nature or history subject, excluding all these subjects: '+json.dumps(sorted(used)))
+    too_close = any(near_duplicate_text(topic, prior, .55) for prior in used)
+    if topic.lower() in {x.lower() for x in used} or too_close or topic == 'a fascinating science fact most people do not know':
+        result = ask_json(
+            'Return JSON with topic: one specific original evergreen science, nature or history '
+            'subject that is meaningfully different from all these prior subjects: ' + json.dumps(used[-60:])
+        )
         topic = result['topic'].strip()
-    if not topic or topic.lower() in used:
+    if not topic or topic.lower() in {x.lower() for x in used}:
         raise ValueError('No new factual topic available')
+    if any(near_duplicate_text(topic, prior, .55) for prior in used):
+        raise ValueError('Generated topic is too similar to a previously published subject')
     return topic
 
 def generate_feature(state):
@@ -192,7 +198,8 @@ def download_visuals(package,state,duration,content_type):
             available += info['duration']-.2
         except (RuntimeError,ValueError,requests.RequestException) as exc:
             print(f'Skip visual query {q}: {type(exc).__name__}')
-    plan=scene_plan([m['duration'] for m in credits],duration,20 if content_type=='quran' else 12)
+    # Faster visual changes improve mobile retention without looping or reusing clips.
+    plan=scene_plan([m['duration'] for m in credits],duration,20 if content_type=='quran' else 6)
     return paths[:len(plan)],credits[:len(plan)],plan
 
 def render(paths,plan,voice,subs,output,kind,quran=False):
