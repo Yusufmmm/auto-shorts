@@ -1,0 +1,38 @@
+{
+  "created_at": "2026-09-23T12:48:59.382809+00:00",
+  "topic": "Sahih Muslim 55 sincerity",
+  "title": "الدين النصيحة | حديث صحيح",
+  "language": "ar",
+  "content_type": "hadith",
+  "format": "short",
+  "slot": "short:2026-09-23:0",
+  "week": "2026-W39",
+  "media": [
+    {
+      "title": "File:Lepena Valley after the rain.webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Lepena_Valley_after_the_rain.webm",
+      "license": "CC BY 3.0",
+      "artist": "JohannPiber",
+      "mime": "video/webm",
+      "duration": 27.128,
+      "sha256": "c93cf4a86ed79ac5cf3ff0b2c193504d4bdbfb991c2e5710344771f4419b8c06"
+    },
+    {
+      "title": "File:Crooked River (37062421530).webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Crooked_River_(37062421530).webm",
+      "license": "Public domain",
+      "artist": "BLM Oregon &amp; Washington",
+      "mime": "video/webm",
+      "duration": 18.251,
+      "sha256": "f71596834b7d6c73bcf312573adf0b13629cd5a8fcf3dfea6742fd4373ac32e8"
+    }
+  ],
+  "audio": null,
+  "script_hash": "3e84b32cce635d7a5c5f6ab985753c23f9cffe4902ba837a7217310d96e08020",
+  "script": "قال رسول الله صلى الله عليه وسلم: الدِّينُ النَّصِيحَةُ. رواه مسلم، الحديث ٥٥. انتهى نص الحديث. النصيحة تبدأ بإرادة الخير للآخرين. انصح بلطف وفي الوقت المناسب، وتجنب إحراج الناس أمام غيرهم. المقصود من النصيحة أن تساعد الإنسان، لا أن تنتصر عليه.",
+  "duration": 29.472,
+  "timing_mode": "speech_word_boundaries",
+  "chapters": [],
+  "visual_mode": "unique_licensed_video_no_loop",
+  "video_id": "bwXr5RPycZ4"
+}
