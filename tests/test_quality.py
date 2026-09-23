@@ -84,3 +84,9 @@ def test_growth_package_requires_short_hook_and_multiple_visuals():
     with pytest.raises(ValueError):
         validate_short_package(bad)
 
+def test_visual_query_variants_broaden_specific_searches():
+    from autoshorts.publisher_v3 import _visual_query_variants
+    variants = _visual_query_variants('Niagara Falls rock edge erosion aerial view')
+    assert 'Niagara Falls' in variants
+    assert any(v.lower() == 'erosion' for v in variants)
+
