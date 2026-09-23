@@ -1,0 +1,38 @@
+{
+  "created_at": "2026-09-23T13:35:40.869336+00:00",
+  "topic": "how waterfalls reshape landscapes",
+  "title": "How Waterfalls Carve Canyons in Solid Rock",
+  "language": "en",
+  "content_type": "fact",
+  "format": "short",
+  "slot": "short:2026-09-23:1",
+  "week": "2026-W39",
+  "media": [
+    {
+      "title": "File:Mt Nimrod Scenic Reserve - Waterfall on Nimrod Stream (video).webm",
+      "source": "https://commons.wikimedia.org/wiki/File:Mt_Nimrod_Scenic_Reserve_-_Waterfall_on_Nimrod_Stream_(video).webm",
+      "license": "CC0",
+      "artist": "David Nind",
+      "mime": "video/webm",
+      "duration": 12.06,
+      "sha256": "cfa1655163aca0e393d153676220f461d2c27bac96a4ecb45d183e80b7686d27"
+    },
+    {
+      "title": "File:A train running over Vintgar Gorge, Slovenia.webm",
+      "source": "https://commons.wikimedia.org/wiki/File:A_train_running_over_Vintgar_Gorge,_Slovenia.webm",
+      "license": "CC BY 3.0",
+      "artist": "homomnis",
+      "mime": "video/webm",
+      "duration": 189.048,
+      "sha256": "2b5582fdf12bab88a888c1e96d65c521954f77e7aafe424812bc4b260fd0cc5b"
+    }
+  ],
+  "audio": null,
+  "script_hash": "e5ef1be8b821924156443f9a132ba867c5c8890556e53b09ebb7aba946d8922c",
+  "script": "How do plunging rivers actually carve solid rock? Niagara Falls moves backward four feet every year. Falling water traps air and blasts canyon walls with millions of tiny shockwaves. This process, called cavitation, shatters stone from the inside out. Over thousands of years, the churning water eats away the softer layers underneath. Eventually, the heavy caprock collapses, forcing the entire waterfall to retreat upstream. This relentless erosion slices deep canyons into the Earth. To understand more natural wonders, subscribe for more earth science stories.",
+  "duration": 41.928,
+  "timing_mode": "speech_word_boundaries",
+  "chapters": [],
+  "visual_mode": "unique_licensed_video_no_loop",
+  "video_id": "IiGTqnm9WMQ"
+}
