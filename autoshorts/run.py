@@ -7,6 +7,7 @@ import time
 import requests
 
 from . import main as pipeline
+from .quality import validate_short_package
 
 
 def _available_models(key: str) -> list[str]:
@@ -75,11 +76,22 @@ def _request_package(key: str, model: str, prompt: str) -> requests.Response:
 def generate_package(topic: str) -> dict:
     key = os.environ["GEMINI_API_KEY"]
     prompt = f"""Create an original English YouTube Short about: {topic}.
-Return strict JSON with keys: script, title, description, hashtags, media_queries.
-The script must be 105-125 words, factual, self-contained, no unsupported breaking-news
-claims, with a strong first-sentence hook and a satisfying ending. Do not imitate or quote
-another creator. title <= 70 chars. hashtags is an array of 4-6 strings. media_queries is
-an array of 3 simple visual search phrases. No markdown."""
+Return strict JSON with exactly these keys: script, title, description, hashtags, media_queries.
+
+Optimize for real viewer retention and subscriptions without misleading clickbait:
+- 105-125 words, factual, self-contained, and evergreen unless the fact is firmly established.
+- Sentence 1 is a 5-12 word hook that creates a specific curiosity gap; no greeting or intro.
+- Deliver a concrete payoff within the first 25 words, then add one new detail every 1-2 sentences.
+- Use short spoken sentences and natural rhythm. No filler, repeated setup, or invented claims.
+- End with a useful takeaway followed by one brief CTA of at most 10 words inviting viewers
+  to subscribe for more science/history/nature stories. Do not beg for likes.
+- title: 35-65 characters, specific and searchable, with one curiosity gap; no ALL CAPS,
+  fake urgency, or more than one ! or ?.
+- description: 1-2 concise sentences; first sentence naturally contains the main topic phrase.
+- hashtags: array of 3-5 focused strings, including #Shorts only if useful.
+- media_queries: array of 6-8 distinct, concrete visual search phrases matching different
+  moments in the narration so the edit can change scenes frequently.
+Do not imitate or quote another creator. No markdown."""
 
     transient_statuses = {429, 500, 502, 503, 504}
     errors: list[str] = []
@@ -88,12 +100,19 @@ an array of 3 simple visual search phrases. No markdown."""
         for attempt in range(1, 4):
             response = _request_package(key, model, prompt)
             if response.ok:
-                raw = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-                data = json.loads(raw)
-                if not 80 <= len(data["script"].split()) <= 145:
-                    raise ValueError("Generated script length is outside safety bounds")
-                print(f"Using Gemini model: {model}")
-                return data
+                try:
+                    raw = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    data = json.loads(raw)
+                    validate_short_package(data)
+                    print(f"Using Gemini model: {model}")
+                    return data
+                except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
+                    summary = f"{model} attempt {attempt}: quality retry: {exc}"
+                    errors.append(summary)
+                    print(summary)
+                    if attempt < 3:
+                        continue
+                    break
 
             summary = f"{model} attempt {attempt}: HTTP {response.status_code} {response.text[:240]}"
             errors.append(summary)
