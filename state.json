@@ -887,13 +887,37 @@
       "chapters": [],
       "visual_mode": "unique_licensed_video_no_loop",
       "video_id": "IiGTqnm9WMQ"
+    },
+    {
+      "created_at": "2026-09-23T21:35:35.222343+00:00",
+      "topic": "why some lakes are naturally different colors",
+      "title": "Why Are Some Lakes Pink and Turquoise?",
+      "language": "en",
+      "content_type": "fact",
+      "format": "short",
+      "slot": "short:2026-09-23:2",
+      "week": "2026-W39",
+      "media": [
+        {
+          "title": "File:Sea Salt - Official Trailer.webm",
+          "source": "https://commons.wikimedia.org/wiki/File:Sea_Salt_-_Official_Trailer.webm",
+          "license": "CC BY 3.0",
+          "artist": "YCJY games",
+          "mime": "video/webm",
+          "duration": 108.901,
+          "sha256": "845878c7d5c28fc133467e99ee9af780778075a79920dc5e7f0679ffaa1d6a0f"
+        }
+      ],
+      "audio": null,
+      "script_hash": "7cc8b95a95e3027703d1c96dbc7e7f64ceddd20c58958ac7e69f11bf58c4f9bc",
+      "script": "Why is that lake bright pink? It is all because of tiny salt-loving algae and bacteria. When water evaporates and salt levels spike, these microscopic organisms produce a red pigment to protect themselves from harsh sunlight. Other lakes glow turquoise due to melting glaciers grinding rock into ultra-fine flour suspended in the water. Meanwhile, acidic volcanic lakes turn a striking emerald green from dissolved minerals. Nature simply uses chemistry as her paintbrush. Subscribe for more surprising science stories every week.",
+      "duration": 38.04,
+      "timing_mode": "speech_word_boundaries",
+      "chapters": [],
+      "visual_mode": "unique_licensed_video_no_loop",
+      "video_id": "RluwxhZ3sqc"
     }
   ],
-  "runs": 24,
-  "campaign_v3_start": "2026-09-19T14:43:31.570671+00:00",
-  "pending_upload": {
-    "slot": "short:2026-09-23:2",
-    "script_hash": "7cc8b95a95e3027703d1c96dbc7e7f64ceddd20c58958ac7e69f11bf58c4f9bc",
-    "started_at": "2026-09-23T21:35:35.222343+00:00"
-  }
+  "runs": 25,
+  "campaign_v3_start": "2026-09-19T14:43:31.570671+00:00"
 }
