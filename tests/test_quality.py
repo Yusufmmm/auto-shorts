@@ -90,3 +90,17 @@ def test_visual_query_variants_broaden_specific_searches():
     assert 'Niagara Falls' in variants
     assert any(v.lower() == 'erosion' for v in variants)
 
+def test_scheduled_publish_uses_fixed_netherlands_slots():
+    from autoshorts.publisher_v3 import scheduled_publish_at
+    now = datetime(2026, 9, 24, 8, 0, tzinfo=timezone.utc)  # 10:00 Europe/Amsterdam
+    state = {'published': []}
+    assert scheduled_publish_at(state, 'short', now) == '2026-09-24T10:30:00Z'
+
+    state = {'published': [{'scheduled_publish_at': '2026-09-24T10:30:00Z'}]}
+    assert scheduled_publish_at(state, 'short', now) == '2026-09-24T16:30:00Z'
+
+def test_scheduled_publish_skips_too_close_slot():
+    from autoshorts.publisher_v3 import scheduled_publish_at
+    now = datetime(2026, 9, 24, 10, 10, tzinfo=timezone.utc)  # 12:10 Europe/Amsterdam
+    assert scheduled_publish_at({'published': []}, 'short', now) == '2026-09-24T16:30:00Z'
+
