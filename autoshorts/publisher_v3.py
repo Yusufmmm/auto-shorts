@@ -16,6 +16,7 @@ from pathlib import Path
 import edge_tts
 import requests
 from google.auth.transport.requests import Request
+from google.auth.exceptions import RefreshError
 from googleapiclient.http import MediaFileUpload
 from . import publisher_v2 as previous
 from .quality import LICENSE_URLS, campaign_open, credit, fingerprint, near_duplicate_text, publication_slot, scene_plan, validate_timings
@@ -283,8 +284,12 @@ def main():
         print('Daily/weekly publication quota already satisfied'); return
     youtube=None
     if not args.dry_run:
-        # Validate OAuth before generating media; avoids wasted runs when a refresh token is revoked.
-        youtube=youtube_client()
+        # Validate OAuth before generating media; a revoked token skips cleanly and retries next schedule.
+        try:
+            youtube=youtube_client()
+        except RefreshError:
+            print('YouTube OAuth token is expired/revoked; skipping this run before generation.')
+            return
         checkpoint(state)
     os.environ['AUTOSHORTS_TARGET_SECONDS'] = str(base.CONFIG.get('duration_target_seconds', 36))
     topic,package,language,content_type=choose(state,args.kind,args.content)
