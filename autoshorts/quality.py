@@ -36,7 +36,7 @@ def scene_plan(durations, target, preferred=16):
         raise ValueError('Incomplete scene coverage')
     return plan
 
-def publication_slot(state, kind, now=None):
+def publication_slot(state, kind, now=None, per_day=2):
     now = now or datetime.now(timezone.utc)
     local = now.astimezone(ZoneInfo('Europe/Amsterdam'))
     published = state.get('published', [])
@@ -47,7 +47,7 @@ def publication_slot(state, kind, now=None):
         return f'long:{week}'
     day = local.date().isoformat()
     today = [x for x in published if x.get('format') != 'long' and datetime.fromisoformat(x['created_at']).astimezone(ZoneInfo('Europe/Amsterdam')).date().isoformat() == day]
-    if len(today) >= 3:
+    if len(today) >= per_day:
         return None
     return f'short:{day}:{len(today)}'
 
@@ -68,7 +68,8 @@ def validate_timings(timings, count, duration):
 
 CLICKBAIT_PHRASES = {
     'you won\'t believe', 'mind blowing', 'mind-blowing', 'shocking truth',
-    'this changes everything', 'secret they don\'t want you to know'
+    'this changes everything', 'secret they don\'t want you to know',
+    'لن تصدق', 'صدمة', 'سر خطير', 'الحقيقة الصادمة'
 }
 
 def _text_tokens(text):
@@ -91,11 +92,11 @@ def validate_short_package(package):
     script = str(package['script']).strip()
     title = str(package['title']).strip()
     words = script.split()
-    if not 80 <= len(words) <= 145:
-        raise ValueError('Generated script length is outside safety bounds')
+    if not 55 <= len(words) <= 110:
+        raise ValueError('Generated script length is outside 30-40 second safety bounds')
 
-    first_sentence = re.split(r'(?<=[.!?])\s+', script, maxsplit=1)[0]
-    if len(first_sentence.split()) > 14:
+    first_sentence = re.split(r'(?<=[.!?؟])\s+', script, maxsplit=1)[0]
+    if len(first_sentence.split()) > 13:
         raise ValueError('Hook is too long for the first seconds of a Short')
     if len(first_sentence.split()) < 3:
         raise ValueError('Hook is too short to communicate a useful promise')
@@ -103,14 +104,14 @@ def validate_short_package(package):
     lowered = (title + ' ' + first_sentence).lower()
     if any(phrase in lowered for phrase in CLICKBAIT_PHRASES):
         raise ValueError('Misleading or low-trust clickbait wording rejected')
-    if not 20 <= len(title) <= 70:
-        raise ValueError('Title length must stay between 20 and 70 characters')
-    if title.count('!') > 1 or title.count('?') > 1:
+    if not 12 <= len(title) <= 60:
+        raise ValueError('Title length must stay between 12 and 60 characters')
+    if title.count('!') > 1 or title.count('?') + title.count('؟') > 1:
         raise ValueError('Excessive title punctuation rejected')
 
     hashtags = package.get('hashtags')
-    if not isinstance(hashtags, list) or not 3 <= len(hashtags) <= 6:
-        raise ValueError('Use 3-6 focused hashtags')
+    if not isinstance(hashtags, list) or not 3 <= len(hashtags) <= 5:
+        raise ValueError('Use 3-5 focused hashtags')
     media_queries = package.get('media_queries')
     if not isinstance(media_queries, list) or len(media_queries) < 5:
         raise ValueError('Need at least five distinct visual search queries')
