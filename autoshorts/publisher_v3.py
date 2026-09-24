@@ -88,33 +88,18 @@ Use well-established facts, explain uncertainty; no invented quotations. Return 
 def choose(state, kind, force_content=None):
     if kind == 'long':
         return generate_feature(state)
-    used = {x.get('topic') for x in state.get('published', [])}
-    today_types = set()
-    day = publication_slot(state, kind).split(':')[1]
-    from zoneinfo import ZoneInfo
-    for item in state.get('published', []):
-        if datetime.fromisoformat(item['created_at']).astimezone(ZoneInfo('Europe/Amsterdam')).date().isoformat() == day:
-            today_types.add(item.get('content_type'))
-    candidates = [force_content] if force_content else [x for x in ('quran','hadith','fact') if x not in today_types]
-    # Quran/hadith text comes only from the reviewed catalogue, never from AI.
-    for desired in candidates:
-        if desired not in ('quran','hadith'):
-            break
-        for item in base.RELIGIOUS[desired]:
-            if item['topic'] not in used:
-                if desired == 'quran' and not item.get('human_audio_file'):
-                    raise ValueError('Quran requires licensed human recitation')
-                return item['topic'], copy.deepcopy(item), 'ar', desired
-        print(f'No unused reviewed {desired} entry: try another category, never recycle scripture')
+
+    # 14-day growth experiment: one clear audience, one language, one repeatable format.
+    # Stop mixing Quran/hadith/English science on the same channel while testing distribution.
     topic = pick_topic(state)
-    if topic in used:
-        raise ValueError('Topic catalogue exhausted; refusing repetition')
-    return topic, base.pipeline.generate_package(topic), 'en', 'fact'
+    package = base.pipeline.generate_package(topic)
+    return topic, package, 'ar', 'fact'
 
 async def tts(script, output, language, subtitles):
     voice = base.CONFIG.get('arabic_voice', 'ar-SA-HamedNeural') if language == 'ar' else base.CONFIG['voice']
+    rate = '+3%' if language == 'ar' else '-5%'
     events = []
-    async for event in edge_tts.Communicate(script, voice, rate='-5%', boundary='WordBoundary').stream():
+    async for event in edge_tts.Communicate(script, voice, rate=rate, boundary='WordBoundary').stream():
         if event['type'] == 'audio':
             with output.open('ab') as f:
                 f.write(event['data'])
@@ -216,7 +201,7 @@ def download_visuals(package,state,duration,content_type):
         except (RuntimeError,ValueError,requests.RequestException) as exc:
             print(f'Skip visual query {q}: {type(exc).__name__}')
     # Faster visual changes improve mobile retention without looping or reusing clips.
-    plan=scene_plan([m['duration'] for m in credits],duration,20 if content_type=='quran' else 6)
+    plan=scene_plan([m['duration'] for m in credits],duration,20 if content_type=='quran' else 5)
     return paths[:len(plan)],credits[:len(plan)],plan
 
 def render(paths,plan,voice,subs,output,kind,quran=False):
@@ -241,7 +226,7 @@ def render(paths,plan,voice,subs,output,kind,quran=False):
         raise ValueError('Rendered video does not cover all narration')
 
 PUBLISH_TIMEZONE = ZoneInfo('Europe/Amsterdam')
-SHORT_PUBLISH_TIMES = ((12, 30), (18, 30), (21, 30))
+SHORT_PUBLISH_TIMES = ((12, 30), (20, 30))
 LONG_PUBLISH_TIME = (19, 30)
 
 def scheduled_publish_at(state, kind, now=None):
@@ -293,7 +278,7 @@ def main():
         print('30-day campaign finished'); return
     if state.get('pending_upload'):
         raise RuntimeError('Unresolved prior upload: reconcile YouTube and state before any new upload')
-    slot=publication_slot(state,args.kind,now)
+    slot=publication_slot(state,args.kind,now,base.CONFIG.get('videos_per_day',2))
     if not slot:
         print('Daily/weekly publication quota already satisfied'); return
     youtube=None
@@ -301,6 +286,7 @@ def main():
         # Validate OAuth before generating media; avoids wasted runs when a refresh token is revoked.
         youtube=youtube_client()
         checkpoint(state)
+    os.environ['AUTOSHORTS_TARGET_SECONDS'] = str(base.CONFIG.get('duration_target_seconds', 36))
     topic,package,language,content_type=choose(state,args.kind,args.content)
     script_hash=fingerprint(package['script'])
     if any(r.get('script_hash')==script_hash for r in state.get('published',[])):
