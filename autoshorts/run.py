@@ -74,23 +74,22 @@ def _request_package(key: str, model: str, prompt: str) -> requests.Response:
 
 def generate_package(topic: str) -> dict:
     key = os.environ["GEMINI_API_KEY"]
-    prompt = f"""Create an original English YouTube Short about: {topic}.
-Return strict JSON with exactly these keys: script, title, description, hashtags, media_queries.
+    target_seconds = int(os.environ.get("AUTOSHORTS_TARGET_SECONDS", "36"))
+    prompt = f"""أنشئ مقطع YouTube Short عربي أصلي عن الموضوع التالي: {topic}.
+أعد JSON فقط بالمفاتيح التالية بالضبط: script, title, description, hashtags, media_queries.
 
-Optimize for real viewer retention and subscriptions without misleading clickbait:
-- 105-125 words, factual, self-contained, and evergreen unless the fact is firmly established.
-- Sentence 1 is a 5-12 word hook that creates a specific curiosity gap; no greeting or intro.
-- Deliver a concrete payoff within the first 25 words, then add one new detail every 1-2 sentences.
-- Use short spoken sentences and natural rhythm. No filler, repeated setup, or invented claims.
-- End with a useful takeaway followed by one brief CTA of at most 10 words inviting viewers
-  to subscribe for more science/history/nature stories. Do not beg for likes.
-- title: 35-65 characters, specific and searchable, with one curiosity gap; no ALL CAPS,
-  fake urgency, or more than one ! or ?.
-- description: 1-2 concise sentences; first sentence naturally contains the main topic phrase.
-- hashtags: array of 3-5 focused strings, including #Shorts only if useful.
-- media_queries: array of 6-8 distinct, concrete visual search phrases matching different
-  moments in the narration so the edit can change scenes frequently.
-Do not imitate or quote another creator. No markdown."""
+الهدف هو الاحتفاظ بالمشاهد والمشاركة، وليس المبالغة:
+- اكتب بالعربية الفصحى السهلة، من 65 إلى 90 كلمة تقريباً، بحيث يناسب {target_seconds} ثانية.
+- أول جملة من 4 إلى 10 كلمات وتدخل مباشرة في الفكرة؛ بدون سلام أو مقدمة.
+- أعطِ أول معلومة مفيدة خلال أول 20 كلمة، ثم تفصيل جديد كل جملة أو جملتين.
+- اختر حقائق ثابتة وقابلة للتحقق، ولا تستخدم أخباراً سياسية أو ادعاءات آنية.
+- اجعل الموضوع بصرياً وقابلاً للمشاركة: ظاهرة غريبة، حقيقة يومية، طبيعة، تاريخ، علم أو تقنية.
+- النهاية تكون مفاجأة أو خلاصة قصيرة، ثم CTA اختياري لا يتجاوز 3 كلمات مثل: تابع للمزيد.
+- title: عنوان عربي واضح من 18 إلى 55 حرفاً، بدون تضليل أو مبالغة أو أحرف كبيرة مصطنعة.
+- description: جملة عربية واحدة موجزة.
+- hashtags: مصفوفة من 3 إلى 5 وسوم مركزة، ويمكن تضمين #Shorts.
+- media_queries: مصفوفة من 6 إلى 8 عبارات بحث باللغة الإنجليزية فقط، قصيرة وملموسة، وكل عبارة تصف لقطة مختلفة مرتبطة مباشرة بالسرد.
+لا تقلد أي صانع محتوى ولا تقتبس منه. لا تستخدم Markdown."""
 
     transient_statuses = {429, 500, 502, 503, 504}
     errors: list[str] = []
