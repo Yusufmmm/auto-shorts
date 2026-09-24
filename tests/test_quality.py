@@ -72,22 +72,20 @@ def test_near_duplicate_topics_are_detected():
 def test_growth_package_requires_short_hook_and_multiple_visuals():
     package = {
         'script': (
-            'Octopuses can taste with their arms. '
-            'Thousands of chemical sensors in their suckers help them inspect what they touch. '
-            'That means an octopus can explore food and its surroundings without bringing every object to its mouth. '
-            'These receptors help the animal distinguish useful chemical signals while it moves across rocks, shells, and prey. '
-            'The arms also contain large networks of neurons, so much of this sensing is processed close to where contact happens. '
-            'Researchers study these systems to understand how touch, chemistry, and movement work together in one distributed nervous system. '
-            'It is a striking example of how evolution can spread sensing across an entire body instead of concentrating every task in one place. '
-            'Subscribe for more surprising science stories every day.'
+            'الأخطبوط يتذوق بأذرعه فعلاً. '
+            'تحتوي الممصات على مستقبلات كيميائية تساعده على فحص ما يلمسه مباشرة. '
+            'لهذا يستطيع استكشاف الطعام والصخور من دون نقل كل شيء إلى فمه. '
+            'كما أن أذرعه تحمل شبكة كبيرة من الخلايا العصبية فتتم معالجة جزء من المعلومات قريباً من مكان اللمس. '
+            'هذه الطريقة تجعل جسمه كله تقريباً جزءاً من نظام الإحساس. '
+            'والنتيجة أن حركة واحدة تكشف له الطعم والملمس معاً. تابع للمزيد.'
         ),
-        'title': 'How Octopuses Taste With Their Arms',
-        'description': 'Octopus arms can detect chemicals while touching objects.',
-        'hashtags': ['#Science', '#Ocean', '#Shorts'],
+        'title': 'كيف يتذوق الأخطبوط بأذرعه؟',
+        'description': 'حقيقة قصيرة عن طريقة إحساس الأخطبوط.',
+        'hashtags': ['#علوم', '#بحر', '#Shorts'],
         'media_queries': ['octopus arm closeup', 'octopus suckers', 'octopus reef', 'octopus feeding', 'octopus underwater', 'octopus movement'],
     }
     assert validate_short_package(package) is package
-    bad = dict(package, title='You Won\'t Believe This SHOCKING TRUTH!!!')
+    bad = dict(package, title='لن تصدق الحقيقة الصادمة عن الأخطبوط!')
     with pytest.raises(ValueError):
         validate_short_package(bad)
 
