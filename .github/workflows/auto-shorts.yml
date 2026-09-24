@@ -1,4 +1,4 @@
-name: Create and upload YouTube Short
+name: Generate and schedule YouTube video
 on:
   workflow_dispatch:
     inputs:
@@ -10,7 +10,7 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: '17 7,12,18 * * *'
+    - cron: '17 3,9,15 * * *'
     - cron: '37 9 * * 0'
   push:
     branches: [main]
@@ -41,7 +41,7 @@ jobs:
         run: |
           git config user.name 'auto-shorts-bot'
           git config user.email 'actions@users.noreply.github.com'
-      - name: Generate and upload
+      - name: Generate and schedule
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
