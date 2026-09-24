@@ -15,6 +15,7 @@ from pathlib import Path
 
 import edge_tts
 import requests
+from google.auth.transport.requests import Request
 from googleapiclient.http import MediaFileUpload
 from . import publisher_v2 as previous
 from .quality import LICENSE_URLS, campaign_open, credit, fingerprint, near_duplicate_text, publication_slot, scene_plan, validate_timings
@@ -274,6 +275,8 @@ def youtube_client():
     credentials=previous.Credentials(None,refresh_token=os.environ['YOUTUBE_REFRESH_TOKEN'],
         token_uri='https://oauth2.googleapis.com/token',client_id=os.environ['YOUTUBE_CLIENT_ID'],
         client_secret=os.environ['YOUTUBE_CLIENT_SECRET'],scopes=['https://www.googleapis.com/auth/youtube.upload'])
+    # Refresh up front so expired/revoked credentials fail before expensive generation/rendering.
+    credentials.refresh(Request())
     return previous.build('youtube','v3',credentials=credentials,cache_discovery=False)
 
 def main():
@@ -293,7 +296,10 @@ def main():
     slot=publication_slot(state,args.kind,now)
     if not slot:
         print('Daily/weekly publication quota already satisfied'); return
+    youtube=None
     if not args.dry_run:
+        # Validate OAuth before generating media; avoids wasted runs when a refresh token is revoked.
+        youtube=youtube_client()
         checkpoint(state)
     topic,package,language,content_type=choose(state,args.kind,args.content)
     script_hash=fingerprint(package['script'])
@@ -333,7 +339,7 @@ def main():
         print('Dry run ready: '+str(video)); return
     state['pending_upload']={'slot':slot,'script_hash':script_hash,'started_at':now.isoformat()}
     checkpoint(state)
-    request=youtube_client().videos().insert(part='snippet,status',body={
+    request=youtube.videos().insert(part='snippet,status',body={
         'snippet':{'title':package['title'][:100],'description':description,'categoryId':'27','defaultLanguage':language},
         'status':{'privacyStatus':'private','publishAt':publish_at,'selfDeclaredMadeForKids':False}},
         media_body=MediaFileUpload(str(video),mimetype='video/mp4',resumable=True))
