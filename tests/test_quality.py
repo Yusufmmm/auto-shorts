@@ -44,11 +44,18 @@ def test_quran_ass_preserves_rtl_lines_and_ornament(tmp_path):
     assert '١٢' in text and r'\p1' in text and 'Amiri' in text
     assert r'\N' in text and r'\\N' not in text
 
-def test_exhausted_quran_still_selects_unused_hadith(monkeypatch):
+def test_growth_experiment_keeps_one_audience_and_language(monkeypatch):
     from autoshorts import publisher_v3 as p
-    monkeypatch.setattr(p,'publication_slot',lambda *_:'short:2026-09-20:0')
-    monkeypatch.setattr(p.base,'RELIGIOUS',{'quran':[],'hadith':[{'topic':'new hadith','script':'reviewed'}]})
-    assert p.choose({'published':[]},'short')[3]=='hadith'
+    monkeypatch.setattr(p,'pick_topic',lambda *_:'why the sky changes color')
+    monkeypatch.setattr(p.base.pipeline,'generate_package',lambda topic:{
+        'script':'هذه حقيقة قصيرة ومفيدة تبدأ مباشرة بالفكرة وتشرح سبب تغير لون السماء بطريقة بسيطة وواضحة للمشاهد العربي مع تفاصيل مرئية متتابعة تساعد على إبقاء الانتباه حتى النهاية وتقدم معلومة جديدة كل عدة ثوان من دون مقدمة طويلة أو تكرار غير ضروري ثم تنتهي بخلاصة سهلة التذكر ومناسبة للمشاركة مع الآخرين لأن الفكرة واضحة ومثيرة للاهتمام.',
+        'title':'لماذا يتغير لون السماء؟',
+        'description':'شرح عربي قصير لسبب تغير لون السماء.',
+        'hashtags':['#علوم','#حقائق','#Shorts'],
+        'media_queries':['blue sky clouds','sunset sky','atmosphere sunlight','red sunset','sun rays clouds','earth atmosphere']
+    })
+    _,_,language,content_type = p.choose({'published':[]},'short')
+    assert language=='ar' and content_type=='fact'
 
 def test_near_duplicate_topics_are_detected():
     assert near_duplicate_text(
@@ -97,10 +104,10 @@ def test_scheduled_publish_uses_fixed_netherlands_slots():
     assert scheduled_publish_at(state, 'short', now) == '2026-09-24T10:30:00Z'
 
     state = {'published': [{'scheduled_publish_at': '2026-09-24T10:30:00Z'}]}
-    assert scheduled_publish_at(state, 'short', now) == '2026-09-24T16:30:00Z'
+    assert scheduled_publish_at(state, 'short', now) == '2026-09-24T18:30:00Z'
 
 def test_scheduled_publish_skips_too_close_slot():
     from autoshorts.publisher_v3 import scheduled_publish_at
     now = datetime(2026, 9, 24, 10, 10, tzinfo=timezone.utc)  # 12:10 Europe/Amsterdam
-    assert scheduled_publish_at({'published': []}, 'short', now) == '2026-09-24T16:30:00Z'
+    assert scheduled_publish_at({'published': []}, 'short', now) == '2026-09-24T18:30:00Z'
 
