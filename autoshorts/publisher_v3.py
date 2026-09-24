@@ -9,7 +9,8 @@ import math
 import os
 import re
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import edge_tts
@@ -238,6 +239,37 @@ def render(paths,plan,voice,subs,output,kind,quran=False):
     if abs(base.pipeline.probe_duration(output)-duration)>.3:
         raise ValueError('Rendered video does not cover all narration')
 
+PUBLISH_TIMEZONE = ZoneInfo('Europe/Amsterdam')
+SHORT_PUBLISH_TIMES = ((12, 30), (18, 30), (21, 30))
+LONG_PUBLISH_TIME = (19, 30)
+
+def scheduled_publish_at(state, kind, now=None):
+    """Choose the next unused fixed publishing time in the Netherlands."""
+    now = now or datetime.now(timezone.utc)
+    local_now = now.astimezone(PUBLISH_TIMEZONE)
+    minimum = local_now + timedelta(minutes=45)
+    used = set()
+    for item in state.get('published', []):
+        value = item.get('scheduled_publish_at')
+        if not value:
+            continue
+        try:
+            used.add(datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(PUBLISH_TIMEZONE))
+        except ValueError:
+            continue
+
+    times = SHORT_PUBLISH_TIMES if kind == 'short' else (LONG_PUBLISH_TIME,)
+    for day_offset in range(0, 8):
+        date = local_now.date() + timedelta(days=day_offset)
+        for hour, minute in times:
+            target = datetime(date.year, date.month, date.day, hour, minute, tzinfo=PUBLISH_TIMEZONE)
+            if target <= minimum:
+                continue
+            if any(abs((target - existing).total_seconds()) < 60 for existing in used):
+                continue
+            return target.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
+    raise RuntimeError('No unused publishing slot available in the next 8 days')
+
 def youtube_client():
     credentials=previous.Credentials(None,refresh_token=os.environ['YOUTUBE_REFRESH_TOKEN'],
         token_uri='https://oauth2.googleapis.com/token',client_id=os.environ['YOUTUBE_CLIENT_ID'],
@@ -291,8 +323,9 @@ def main():
     if content_type!='quran': description+='\nOriginal script; synthetic narration.'
     if len(description)>5000:
         raise ValueError('Attribution does not fit YouTube description; refusing to drop credits')
-    record=dict(created_at=now.isoformat(),topic=topic,title=package['title'],language=language,content_type=content_type,
-        format=args.kind,slot=slot,week=now.astimezone(__import__('zoneinfo').ZoneInfo('Europe/Amsterdam')).strftime('%G-W%V'),
+    publish_at=scheduled_publish_at(state,args.kind,now)
+    record=dict(created_at=now.isoformat(),scheduled_publish_at=publish_at,topic=topic,title=package['title'],language=language,content_type=content_type,
+        format=args.kind,slot=slot,week=now.astimezone(PUBLISH_TIMEZONE).strftime('%G-W%V'),
         media=media,audio=audio_info,script_hash=script_hash,script=package['script'],duration=duration,timing_mode=timing_mode,
         chapters=package.get('chapters',[]),visual_mode='unique_licensed_video_no_loop')
     save_json(BUILD/'manifest.json',dict(record,description=description,scene_durations=plan))
@@ -302,7 +335,7 @@ def main():
     checkpoint(state)
     request=youtube_client().videos().insert(part='snippet,status',body={
         'snippet':{'title':package['title'][:100],'description':description,'categoryId':'27','defaultLanguage':language},
-        'status':{'privacyStatus':base.CONFIG['privacy_status'],'selfDeclaredMadeForKids':False}},
+        'status':{'privacyStatus':'private','publishAt':publish_at,'selfDeclaredMadeForKids':False}},
         media_body=MediaFileUpload(str(video),mimetype='video/mp4',resumable=True))
     response=None
     while response is None:
@@ -314,8 +347,8 @@ def main():
     save_json(base.LOGS/f'{now:%Y-%m-%dT%H-%M-%SZ}.json',record)
     checkpoint(state)
     url='https://www.youtube.com/watch?v='+record['video_id']
-    print('Uploaded '+url)
+    print(f'Uploaded and scheduled {url} for {publish_at}')
     if os.environ.get('GITHUB_STEP_SUMMARY'):
-        with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write(f'Published: {url}\n')
+        with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write(f'Scheduled: {url} at {publish_at}\n')
 
 if __name__=='__main__':main()
