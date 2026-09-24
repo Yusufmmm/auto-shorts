@@ -1,15 +1,17 @@
 {
-  "channel_niche": "curious science, technology, history and nature facts",
-  "language": "en-US",
-  "voice": "en-US-AriaNeural",
+  "channel_niche": "Arabic curiosity Shorts: visually surprising evergreen science, nature, history and everyday mysteries",
+  "language": "ar-SA",
+  "voice": "ar-SA-HamedNeural",
   "arabic_voice": "ar-SA-HamedNeural",
-  "videos_per_day": 3,
-  "religious_videos_per_day": 2,
+  "videos_per_day": 2,
+  "religious_videos_per_day": 0,
   "max_days": 30,
-  "max_videos": 90,
-  "privacy_status": "public",
-  "duration_target_seconds": 45,
-  "long_videos_per_week": 1,
+  "max_videos": 60,
+  "privacy_status": "private",
+  "duration_target_seconds": 36,
+  "long_videos_per_week": 0,
   "long_duration_min_seconds": 720,
-  "long_duration_max_seconds": 1200
+  "long_duration_max_seconds": 1200,
+  "experiment_name": "arabic-curiosity-14d",
+  "experiment_days": 14
 }
