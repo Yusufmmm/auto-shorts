@@ -1,4 +1,4 @@
-"""Three diverse Shorts/day and one original, chaptered weekly feature."""
+"""Focused Arabic curiosity Shorts with scheduled publishing and strict quality gates."""
 from __future__ import annotations
 import argparse
 import asyncio
@@ -268,7 +268,7 @@ def youtube_client():
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--kind',choices=['short','long'],default='short')
-    parser.add_argument('--content',choices=['fact','quran','hadith'])
+    parser.add_argument('--content',choices=['fact'],default='fact')
     parser.add_argument('--dry-run',action='store_true')
     args=parser.parse_args()
     BUILD.mkdir(exist_ok=True); base.LOGS.mkdir(exist_ok=True)
